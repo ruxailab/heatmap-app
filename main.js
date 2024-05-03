@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron/main'
 
 import * as path from 'path'
 
-const createWindow = () => {
+function createWindow() {
   const win = new BrowserWindow({
     width: 800,
     height: 600,
@@ -16,15 +16,19 @@ const createWindow = () => {
   // win.contentView.addChildView(view1)
   // view1.webContents.loadURL('https://electronjs.org')
   // view1.setBounds({ x: 0, y: 0, width: 1000, height: 400 })
+  return win
 }
 
-ipcMain.on('urlToGo', (_, value) => {
-  console.log('Input value received in main process:', value)
-  // You can do whatever you want with the received value here
-})
-
 app.whenReady().then(() => {
-  createWindow()
+  const win = createWindow()
+
+  ipcMain.on('urlToGo', (_, value) => {
+    console.log('Input value received in main process:', value)
+    const inputUrl = validateAndFixUrl(value)
+    if (win && inputUrl) {
+      win.loadURL(inputUrl)
+    }
+  })
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -38,3 +42,10 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
+
+function validateAndFixUrl(inputUrl) {
+  // add http or https to url if it doesn't starts With
+  const urlRegex = /^(https?):\/\//
+
+  return urlRegex.test(inputUrl) ? inputUrl : 'https://' + inputUrl
+}
