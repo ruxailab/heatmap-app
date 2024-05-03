@@ -1,9 +1,15 @@
-<script setup>
-import TheWelcome from '../components/TheWelcome.vue'
+<script>
+import UrlForm from '@/components/UrlForm.vue'
+
+export default {
+  components: {
+    UrlForm,
+  },
+}
 </script>
 
 <template>
-  <main>
-    <TheWelcome />
-  </main>
+  <v-main>
+    <UrlForm />
+  </v-main>
 </template>
