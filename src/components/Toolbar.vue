@@ -6,30 +6,30 @@
     <v-btn icon @click="goForward">
       <v-icon>mdi-arrow-right</v-icon>
     </v-btn>
-    <v-btn icon>
+    <v-btn icon @click="goHome">
       <v-icon>mdi-home</v-icon>
     </v-btn>
-    <v-spacer></v-spacer>
-    <v-text-field
-      :value="url"
-      @input="$emit('update:url', $event)"
-      class="hidden-sm-and-down"
-      flat
-      solo
-      hide-details
-      readonly
-      label="URL"
-    ></v-text-field>
-    <v-spacer></v-spacer>
+    <p class="font-weight-bold url-text">{{ this.url }}</p>
   </v-app-bar>
 </template>
 
 <script>
 export default {
-  props: {
-    url: {
-      type: String,
-      default: '',
+  data() {
+    return {
+      url: '',
+    }
+  },
+  created() {
+    if (window.electronAPI) {
+      window.electronAPI.on('url-updated', (value) => {
+        this.url = value
+      })
+    }
+  },
+  computed: {
+    truncatedUrl() {
+      return this.url.length > 20 ? this.url.substring(0, 17) + '...' : this.url
     },
   },
   methods: {
@@ -41,6 +41,22 @@ export default {
       if (window.electronAPI) window.electronAPI.send('forwardAction')
       else console.log('electronAPI not defined in toolbar')
     },
+    goHome() {
+      if (window.electronAPI) window.electronAPI.send('resetURL')
+      else console.log('electronAPI not defined in toolbar')
+    },
   },
 }
 </script>
+<style>
+.url-text {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 60%;
+  padding: 0 20px;
+}
+</style>
