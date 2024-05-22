@@ -15,10 +15,13 @@ export default {
       ],
     }
   },
+  props: {
+    toolbarHeight: Number,
+  },
   methods: {
     sendUrl() {
       if (window.electronAPI) {
-        window.electronAPI.send('urlToGo', this.inputUrl)
+        window.electronAPI.send('urlToGo', [this.inputUrl, this.toolbarHeight])
       } else {
         console.error('electronAPI is not defined')
       }
@@ -28,19 +31,27 @@ export default {
 </script>
 
 <template>
-  <v-container>
-    <v-form v-model="validUrl">
-      <v-text-field
-        class="mx-auto"
-        min-width="400"
-        label="Url"
-        v-model="inputUrl"
-        variant="solo"
-        :rules="urlRules"
-      ></v-text-field>
-    </v-form>
-    <v-btn class="bg-green" :disabled="!validUrl" @click="sendUrl">Go</v-btn>
-  </v-container>
+  <v-form v-model="validUrl">
+    <v-row align="center">
+      <v-col>
+        <v-text-field
+          class="pt-5"
+          label="Url"
+          v-model="inputUrl"
+          variant="solo"
+          :rules="urlRules"
+          required
+        ></v-text-field>
+      </v-col>
+      <v-col>
+        <v-btn class="bg-green" :disabled="!validUrl" @click="sendUrl"
+          >Go</v-btn
+        >
+      </v-col>
+    </v-row>
+  </v-form>
 </template>
-
-<style scoped></style>
+<style scoped>
+/* class="mx-auto" */
+/* min-width="400" */
+</style>

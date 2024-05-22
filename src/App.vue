@@ -1,21 +1,44 @@
 <script>
-import { RouterLink, RouterView } from 'vue-router'
-import Toolbar from '@/components/Toolbar.vue'
-import HomeView from '@/views/HomeView.vue'
-
+import { RouterView } from 'vue-router'
+import Toolbar from './components/Toolbar.vue'
 export default {
+  name: 'App',
   components: {
+    RouterView,
     Toolbar,
-    HomeView,
+  },
+  data() {
+    return {
+      toolbarHeight: 0,
+    }
+  },
+  mounted() {
+    this.$nextTick(() => {
+      const componentElement = this.$el.querySelector('.toolbar-menu')
+      if (componentElement) {
+        this.toolbarHeight = componentElement.offsetHeight
+      }
+    })
+  },
+  provide() {
+    return {
+      toolbarHeight: () => this.toolbarHeight,
+    }
   },
 }
 </script>
 
 <template>
   <v-app>
-    <Toolbar />
-    <HomeView />
+    <Toolbar :url="url" @update:url="updateUrl" ref="toolbar" />
+    <v-main>
+      <RouterView />
+    </v-main>
   </v-app>
 </template>
 
-<style scoped></style>
+<style scoped>
+::-webkit-scrollbar {
+  width: 0px;
+}
+</style>
