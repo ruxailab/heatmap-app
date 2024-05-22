@@ -1,9 +1,9 @@
 <template>
   <v-app-bar app class="toolbar-menu">
-    <v-btn icon>
+    <v-btn icon @click="goBack">
       <v-icon>mdi-arrow-left</v-icon>
     </v-btn>
-    <v-btn icon>
+    <v-btn icon @click="goForward">
       <v-icon>mdi-arrow-right</v-icon>
     </v-btn>
     <v-btn icon>
@@ -30,6 +30,16 @@ export default {
     url: {
       type: String,
       default: '',
+    },
+  },
+  methods: {
+    goBack() {
+      if (window.electronAPI) window.electronAPI.send('backAction')
+      else console.log('electronAPI not defined in toolbar')
+    },
+    goForward() {
+      if (window.electronAPI) window.electronAPI.send('forwardAction')
+      else console.log('electronAPI not defined in toolbar')
     },
   },
 }

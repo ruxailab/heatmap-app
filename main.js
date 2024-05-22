@@ -18,13 +18,13 @@ function createWindow() {
 
 app.whenReady().then(() => {
   const mainWin = createWindow()
+  const webView = new WebContentsView()
 
   ipcMain.on('urlToGo', (_, value) => {
     console.log('Input value received in main process:', value)
     const inputUrl = validateAndFixUrl(value[0])
     const offsetY = value[1] // offset of the toolbar
     if (mainWin && inputUrl) {
-      const webView = new WebContentsView()
       mainWin.contentView.addChildView(webView)
       webView.webContents.loadURL(inputUrl)
 
@@ -35,6 +35,17 @@ app.whenReady().then(() => {
       mainWin.on('resize', () => {
         resizeWebView(undefined, offsetY, mainWin, webView)
       })
+    }
+  })
+
+  ipcMain.on('backAction', () => {
+    if (webView.webContents.canGoBack()) {
+      webView.webContents.goBack()
+    }
+  })
+  ipcMain.on('forwardAction', () => {
+    if (webView.webContents.canGoForward()) {
+      webView.webContents.goForward()
     }
   })
 
