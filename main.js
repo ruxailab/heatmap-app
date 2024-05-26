@@ -16,60 +16,51 @@ function createWindow() {
   return mainWin
 }
 
+function handleUrlToGo(value, inputUrl, mainWin, webView) {
+  console.log('Input value received in main process:', value)
+  const offsetY = value[1] // offset of the toolbar
+  if (mainWin && inputUrl) {
+    mainWin.contentView.addChildView(webView)
+    webView.webContents.loadURL(inputUrl)
+
+    webView.webContents.on('did-finish-load', () =>
+      resizeWebView(undefined, offsetY, mainWin, webView),
+    )
+
+    webView.webContents.on('did-navigate', (_, url) => {
+      mainWin.webContents.send('url-updated', url)
+    })
+
+    mainWin.on('resize', () => {
+      resizeWebView(undefined, offsetY, mainWin, webView)
+    })
+  }
+}
+
+function handleBackAction(webView) {
+  if (webView.webContents.canGoBack()) webView.webContents.goBack()
+}
+
+function handleForwardAction(webView) {
+  if (webView.webContents.canGoForward()) webView.webContents.goForward()
+}
+
+function handleResetUrl(inputUrl, webView) {
+  if (inputUrl) webView.webContents.loadURL(inputUrl)
+}
+
 app.whenReady().then(() => {
   const mainWin = createWindow()
   const webView = new WebContentsView()
   var inputUrl
 
   ipcMain.on('urlToGo', (_, value) => {
-    console.log('Input value received in main process:', value)
     inputUrl = validateAndFixUrl(value[0])
-    const offsetY = value[1] // offset of the toolbar
-    if (mainWin && inputUrl) {
-      mainWin.contentView.addChildView(webView)
-      webView.webContents.loadURL(inputUrl)
-
-      webView.webContents.on('did-finish-load', () =>
-        resizeWebView(undefined, offsetY, mainWin, webView),
-      )
-
-      webView.webContents.on('did-navigate', (_, url) => {
-        mainWin.webContents.send('url-updated', url)
-      })
-
-      mainWin.on('resize', () => {
-        resizeWebView(undefined, offsetY, mainWin, webView)
-      })
-    }
+    handleUrlToGo(value, inputUrl, mainWin, webView)
   })
-
-  ipcMain.on('backAction', () => {
-    if (webView.webContents.canGoBack()) {
-      webView.webContents.goBack()
-    }
-  })
-
-  ipcMain.on('forwardAction', () => {
-    if (webView.webContents.canGoForward()) {
-      webView.webContents.goForward()
-    }
-  })
-
-  ipcMain.on('resetURL', () => {
-    if (inputUrl) webView.webContents.loadURL(inputUrl)
-  })
-
-  mainWin.webContents.on('did-navigate-in-page', (_, url) => {
-    console.log('did naviage in page: ' + url)
-  })
-
-  mainWin.webContents.on('did-navigate', (_, url) => {
-    console.log('did navigate to: ' + url)
-  })
-
-  mainWin.webContents.on('did-frame-navigate', (_, url) => {
-    console.log('did frame navigate to: ' + url)
-  })
+  ipcMain.on('backAction', () => handleBackAction(webView))
+  ipcMain.on('forwardAction', () => handleForwardAction(webView))
+  ipcMain.on('resetURL', () => handleResetUrl(inputUrl, webView))
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -87,24 +78,20 @@ app.on('window-all-closed', () => {
 function validateAndFixUrl(inputUrl) {
   // add http or https to url if it doesn't starts With
   const urlRegex = /^(https?):\/\//
-
   return urlRegex.test(inputUrl) ? inputUrl : 'https://' + inputUrl
 }
 
 function resizeWebView(offsetX = 0, offsetY = 0, mainWindow, webView) {
-  if (!mainWindow) {
-    console.log('mainWindow not ready')
+  if (!mainWindow || !webView) {
+    console.log('mainWindow or webView not ready')
     return
   }
-  if (!webView) {
-    console.log('webView not ready')
-    return
-  }
-  const { width, height } = mainWindow.getContentBounds()
-  const { oldX, oldY } = webView.getBounds()
 
-  if (offsetX == undefined) offsetX = oldX
-  if (offsetY == undefined) offsetY = oldY
+  const { width, height } = mainWindow.getContentBounds()
+  const { x: oldX, y: oldY } = webView.getBounds()
+
+  offsetX = offsetX === undefined ? oldX : offsetX
+  offsetY = offsetY === undefined ? oldY : offsetY
 
   webView.setBounds({ x: offsetX, y: offsetY, width, height })
 }
