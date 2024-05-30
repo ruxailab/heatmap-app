@@ -1,3 +1,11 @@
+<template>
+  <v-container class="fill-height">
+    <v-responsive class="align-centerfill-height mx-auto" max-width="900">
+      <UrlForm :toolbarHeight="localToolbarHeigh" />
+    </v-responsive>
+  </v-container>
+</template>
+
 <script>
 import UrlForm from '@/components/UrlForm.vue'
 
@@ -26,14 +34,6 @@ export default {
   },
 }
 </script>
-
-<template>
-  <v-container class="fill-height">
-    <v-responsive class="align-centerfill-height mx-auto" max-width="900">
-      <UrlForm :toolbarHeight="localToolbarHeigh" />
-    </v-responsive>
-  </v-container>
-</template>
 
 <style>
 /* Hides scrollbar */

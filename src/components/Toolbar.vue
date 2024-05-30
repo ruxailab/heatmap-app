@@ -13,23 +13,21 @@
       {{ truncatedUrl }}
     </p>
     <v-spacer></v-spacer>
+    <Chronometer />
   </v-app-bar>
 </template>
 
 <script>
+import Chronometer from './Chronometer.vue'
+
 const MAX_URL_LENGTH = 30
 export default {
+  components: {
+    Chronometer,
+  },
   data() {
     return {
       url: '',
-    }
-  },
-  created() {
-    const { electronAPI } = window
-    if (electronAPI) {
-      electronAPI.on('url-updated', (value) => {
-        this.url = value
-      })
     }
   },
   computed: {
@@ -41,6 +39,14 @@ export default {
         ? this.url.substring(0, MAX_URL_LENGTH - 3) + '...'
         : this.url
     },
+  },
+  created() {
+    const { electronAPI } = window
+    if (electronAPI) {
+      electronAPI.on('url-updated', (value) => {
+        this.url = value
+      })
+    }
   },
   methods: {
     goBack() {

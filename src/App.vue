@@ -1,3 +1,17 @@
+<template>
+  <v-app>
+    <Toolbar
+      :url="url"
+      @update:url="updateUrl"
+      ref="toolbar"
+      :isRunning="isChronometerRunning"
+    />
+    <v-main>
+      <RouterView @toggle-chronometer="toggleChronometer" />
+    </v-main>
+  </v-app>
+</template>
+
 <script>
 import { RouterView } from 'vue-router'
 import Toolbar from './components/Toolbar.vue'
@@ -7,9 +21,17 @@ export default {
     RouterView,
     Toolbar,
   },
+  provide() {
+    return {
+      startChronometer: this.startChronometer,
+      isChronometerRunning: () => this.isChronometerRunning,
+      toolbarHeight: () => this.toolbarHeight,
+    }
+  },
   data() {
     return {
       toolbarHeight: 0,
+      isChronometerRunning: false,
     }
   },
   mounted() {
@@ -20,22 +42,16 @@ export default {
       }
     })
   },
-  provide() {
-    return {
-      toolbarHeight: () => this.toolbarHeight,
-    }
+  methods: {
+    startChronometer() {
+      this.isChronometerRunning = true
+    },
+    toggleChronometer() {
+      this.isChronometerRunning = !this.isChronometerRunning
+    },
   },
 }
 </script>
-
-<template>
-  <v-app>
-    <Toolbar :url="url" @update:url="updateUrl" ref="toolbar" />
-    <v-main>
-      <RouterView />
-    </v-main>
-  </v-app>
-</template>
 
 <style scoped>
 ::-webkit-scrollbar {
