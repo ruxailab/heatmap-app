@@ -1,26 +1,34 @@
 <template>
-  <v-app-bar app class="toolbar-menu">
-    <v-btn icon @click="goBack">
-      <v-icon>mdi-arrow-left</v-icon>
-    </v-btn>
-    <v-btn icon @click="goForward">
-      <v-icon>mdi-arrow-right</v-icon>
-    </v-btn>
-    <v-btn icon @click="goHome">
-      <v-icon>mdi-home</v-icon>
-    </v-btn>
-    <p class="font-weight-bold url-text" :title="url">
-      {{ truncatedUrl }}
-    </p>
-    <v-spacer></v-spacer>
-    <Chronometer />
+  <v-app-bar class="toolbar-menu">
+    <v-row class="align-center">
+      <v-col cols="4">
+        <v-btn icon @click="goBack">
+          <v-icon>mdi-arrow-left</v-icon>
+        </v-btn>
+        <v-btn icon @click="goForward">
+          <v-icon>mdi-arrow-right</v-icon>
+        </v-btn>
+        <v-btn icon @click="goHome">
+          <v-icon>mdi-home</v-icon>
+        </v-btn>
+      </v-col>
+      <v-col class="text-center">
+        <p class="font-weight-bold" :title="url">
+          {{ truncatedUrl }}
+        </p>
+      </v-col>
+      <v-col cols="4" class="justify-end d-flex align-center mr-4">
+        <Chronometer />
+        <v-btn class="bg-green">End test</v-btn>
+      </v-col>
+    </v-row>
   </v-app-bar>
 </template>
 
 <script>
 import Chronometer from './Chronometer.vue'
-
 const MAX_URL_LENGTH = 30
+
 export default {
   components: {
     Chronometer,
@@ -65,15 +73,4 @@ export default {
 }
 </script>
 
-<style>
-.url-text {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  max-width: 60%;
-  padding: 0 20px;
-}
-</style>
+<style></style>

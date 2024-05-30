@@ -1,15 +1,9 @@
 <template>
-  <v-container>
-    <v-row justify="center">
-      <v-col cols="auto">
-        <v-card class="pa-3" outlined>
-          <v-card-text class="text-center">
-            <span class="display-1">{{ minutes }}:{{ seconds }}</span>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+  <v-card class="pa-3" outlined>
+    <v-card-text class="text-end">
+      <span class="display-1">{{ minutes }}:{{ seconds }}</span>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script>
