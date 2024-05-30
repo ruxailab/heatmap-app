@@ -1,11 +1,6 @@
 <template>
   <v-app>
-    <Toolbar
-      :url="url"
-      @update:url="updateUrl"
-      ref="toolbar"
-      :isRunning="isChronometerRunning"
-    />
+    <Toolbar :url="url" @update:url="updateUrl" ref="toolbar" :isRunning="isChronometerRunning" />
     <v-main>
       <RouterView @toggle-chronometer="toggleChronometer" />
     </v-main>
@@ -24,6 +19,7 @@ export default {
   provide() {
     return {
       startChronometer: this.startChronometer,
+      stopChronometer: this.stopChronometer,
       isChronometerRunning: () => this.isChronometerRunning,
       toolbarHeight: () => this.toolbarHeight,
     }
@@ -45,6 +41,9 @@ export default {
   methods: {
     startChronometer() {
       this.isChronometerRunning = true
+    },
+    stopChronometer() {
+      this.isChronometerRunning = false
     },
     toggleChronometer() {
       this.isChronometerRunning = !this.isChronometerRunning

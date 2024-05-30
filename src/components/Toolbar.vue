@@ -19,7 +19,7 @@
       </v-col>
       <v-col cols="4" class="justify-end d-flex align-center mr-4">
         <Chronometer />
-        <v-btn class="bg-green">End test</v-btn>
+        <v-btn @click="endTest" class="bg-green">End test</v-btn>
       </v-col>
     </v-row>
   </v-app-bar>
@@ -33,6 +33,7 @@ export default {
   components: {
     Chronometer,
   },
+  inject: ['stopChronometer'],
   data() {
     return {
       url: '',
@@ -68,6 +69,9 @@ export default {
     goHome() {
       if (this.electronAPI) this.electronAPI.send('resetURL')
       else console.log('electronAPI not defined in toolbar')
+    },
+    endTest() {
+      this.stopChronometer()
     },
   },
 }
