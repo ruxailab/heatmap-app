@@ -72,6 +72,8 @@ export default {
     },
     endTest() {
       this.stopChronometer()
+      if (this.electronAPI) this.electronAPI.send('endTest')
+      else console.log('electronAPI not defined in toolbar')
     },
   },
 }

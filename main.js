@@ -1,3 +1,4 @@
+import { webContents } from 'electron'
 import { app, BrowserWindow, WebContentsView, ipcMain } from 'electron/main'
 
 import * as path from 'path'
@@ -23,8 +24,18 @@ function handleUrlToGo(value, inputUrl, mainWin, webView) {
     mainWin.contentView.addChildView(webView)
     webView.webContents.loadURL(inputUrl)
 
-    webView.webContents.on('did-finish-load', () =>
-      resizeWebView(undefined, offsetY, mainWin, webView),
+    webView.webContents.on(
+      'did-finish-load',
+      () => resizeWebView(undefined, offsetY, mainWin, webView),
+      mainWin.webContents.send('webview-load-finished'),
+    )
+
+    webView.webContents.on(
+      'did-fail-load',
+      (_, _, errorDescription) => {
+        mainWin.webContents.send('webview-load-failed', errorDescription)
+        endWebView(mainWin, webView)
+      },
     )
 
     webView.webContents.on('did-navigate', (_, url) => {
@@ -49,9 +60,30 @@ function handleResetUrl(inputUrl, webView) {
   if (inputUrl) webView.webContents.loadURL(inputUrl)
 }
 
+/**
+ * Handles the end of a test.
+ *
+ * This function is responsible for closing the developer tools
+ * and destroying the web contents of the provided WebView when a test ends.
+ * Used once the user has confirmed that the test has ended.
+ *
+ * @param {WebView} webView - The WebView whose test has ended.
+ */
+function handleEndTest(mainWin, webView) {
+  if (webView.webContents) {
+    //TODO: add saving data
+    endWebView(mainWin, webView)
+  }
+}
+
+function endWebView(mainWin, webView) {
+  webView.webContents.closeDevTools()
+  mainWin.contentView.removeChildView(webView)
+}
+
 app.whenReady().then(() => {
   const mainWin = createWindow()
-  const webView = new WebContentsView()
+  let webView = new WebContentsView()
   var inputUrl
 
   ipcMain.on('urlToGo', (_, value) => {
@@ -61,6 +93,7 @@ app.whenReady().then(() => {
   ipcMain.on('backAction', () => handleBackAction(webView))
   ipcMain.on('forwardAction', () => handleForwardAction(webView))
   ipcMain.on('resetURL', () => handleResetUrl(inputUrl, webView))
+  ipcMain.on('endTest', () => handleEndTest(mainWin, webView))
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

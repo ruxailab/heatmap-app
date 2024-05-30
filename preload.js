@@ -8,6 +8,9 @@ let validChannels = [
   'forwardAction',
   'resetURL',
   'url-updated',
+  'endTest',
+  'webview-load-finished',
+  'webview-load-failed',
 ]
 contextBridge.exposeInMainWorld('electronAPI', {
   send: (channel, data) => {
