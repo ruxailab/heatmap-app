@@ -1,4 +1,3 @@
-import { webContents } from 'electron'
 import { app, BrowserWindow, WebContentsView, ipcMain } from 'electron/main'
 
 import * as path from 'path'
@@ -24,15 +23,14 @@ function handleUrlToGo(value, inputUrl, mainWin, webView) {
     mainWin.contentView.addChildView(webView)
     webView.webContents.loadURL(inputUrl)
 
-    webView.webContents.on(
-      'did-finish-load',
-      () => resizeWebView(undefined, offsetY, mainWin, webView),
-      mainWin.webContents.send('webview-load-finished'),
-    )
+    webView.webContents.on('did-finish-load', () => {
+      resizeWebView(undefined, offsetY, mainWin, webView)
+      mainWin.webContents.send('webview-load-finished')
+    })
 
     webView.webContents.on(
       'did-fail-load',
-      (_, _, errorDescription) => {
+      (_event, _errorCode, errorDescription) => {
         mainWin.webContents.send('webview-load-failed', errorDescription)
         endWebView(mainWin, webView)
       },
@@ -67,6 +65,7 @@ function handleResetUrl(inputUrl, webView) {
  * and destroying the web contents of the provided WebView when a test ends.
  * Used once the user has confirmed that the test has ended.
  *
+ * @param {BrowserWindow} mainWin - The window where webView is attached to
  * @param {WebView} webView - The WebView whose test has ended.
  */
 function handleEndTest(mainWin, webView) {
@@ -84,7 +83,7 @@ function endWebView(mainWin, webView) {
 app.whenReady().then(() => {
   const mainWin = createWindow()
   let webView = new WebContentsView()
-  var inputUrl
+  let inputUrl
 
   ipcMain.on('urlToGo', (_, value) => {
     inputUrl = validateAndFixUrl(value[0])
