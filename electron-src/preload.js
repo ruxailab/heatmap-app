@@ -11,6 +11,7 @@ let validChannels = [
   'endTest',
   'webview-load-finished',
   'webview-load-failed',
+  'trackclick',
 ]
 contextBridge.exposeInMainWorld('electronAPI', {
   send: (channel, data) => {

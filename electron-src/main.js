@@ -1,6 +1,7 @@
 import { app, BrowserWindow, WebContentsView, ipcMain } from 'electron/main'
 
 import * as path from 'path'
+import ClickTracker from './clicks/ClickTracker.js'
 
 function createWindow() {
   const mainWin = new BrowserWindow({
@@ -16,15 +17,21 @@ function createWindow() {
   return mainWin
 }
 
-function handleUrlToGo(value, inputUrl, mainWin, webView) {
-  console.log('Input value received in main process:', value)
-  const offsetY = value[1] // offset of the toolbar
+function handleUrlToGo(offsetY, inputUrl, mainWin, webView, clickTracker) {
   if (mainWin && inputUrl) {
     mainWin.contentView.addChildView(webView)
     webView.webContents.loadURL(inputUrl)
 
     webView.webContents.on('did-finish-load', () => {
       resizeWebView(undefined, offsetY, mainWin, webView)
+      clickTracker.startTracking()
+      webView.webContents.executeJavaScript(`
+        console.log("EXXX")
+        document.addEventListener('click', function(e) {
+          window.electronAPI.send('trackclick', e.clientX, e.clientY)
+        });
+     `)
+
       mainWin.webContents.send('webview-load-finished')
     })
 
@@ -68,9 +75,11 @@ function handleResetUrl(inputUrl, webView) {
  * @param {BrowserWindow} mainWin - The window where webView is attached to
  * @param {WebView} webView - The WebView whose test has ended.
  */
-function handleEndTest(mainWin, webView) {
+function handleEndTest(mainWin, webView, clickTracker) {
   if (webView.webContents) {
     //TODO: add saving data
+    const clicks = clickTracker.getClicks()
+    console.log(clicks)
     endWebView(mainWin, webView)
   }
 }
@@ -83,16 +92,23 @@ function endWebView(mainWin, webView) {
 app.whenReady().then(() => {
   const mainWin = createWindow()
   let webView = new WebContentsView()
+  let clickTracker = new ClickTracker()
   let inputUrl
 
   ipcMain.on('urlToGo', (_, value) => {
     inputUrl = validateAndFixUrl(value[0])
-    handleUrlToGo(value, inputUrl, mainWin, webView)
+    console.log('Input value received in main process:', value)
+    handleUrlToGo(value[1], inputUrl, mainWin, webView, clickTracker)
   })
   ipcMain.on('backAction', () => handleBackAction(webView))
   ipcMain.on('forwardAction', () => handleForwardAction(webView))
   ipcMain.on('resetURL', () => handleResetUrl(inputUrl, webView))
-  ipcMain.on('endTest', () => handleEndTest(mainWin, webView))
+  ipcMain.on('endTest', () => handleEndTest(mainWin, webView, clickTracker))
+
+  ipcMain.on('trackclick', (_, x, y) => {
+    console.log('lcik')
+    clickTracker.trackClick(x, y)
+  })
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

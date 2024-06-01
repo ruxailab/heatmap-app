@@ -5,7 +5,7 @@
   "license": "MIT License",
   "private": true,
   "type": "module",
-  "main": "main.js",
+  "main": "./electron-src/main.js",
   "scripts": {
     "eslint": "eslint .",
     "dev": "vite",
