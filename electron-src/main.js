@@ -1,4 +1,9 @@
-import { app, BrowserWindow, WebContentsView, ipcMain } from 'electron/main'
+import {
+  app,
+  ipcMain,
+  BrowserWindow,
+  WebContentsView,
+} from 'electron/main'
 
 import * as path from 'path'
 import ClickTracker from './clicks/ClickTracker.js'
@@ -26,9 +31,8 @@ function handleUrlToGo(offsetY, inputUrl, mainWin, webView, clickTracker) {
       resizeWebView(undefined, offsetY, mainWin, webView)
       clickTracker.startTracking()
       webView.webContents.executeJavaScript(`
-        console.log("EXXX")
         document.addEventListener('click', function(e) {
-          window.electronAPI.send('trackclick', e.clientX, e.clientY)
+          window.electronAPI.sendClick(e.clientX, e.clientY)
         });
      `)
 
@@ -91,7 +95,14 @@ function endWebView(mainWin, webView) {
 
 app.whenReady().then(() => {
   const mainWin = createWindow()
-  let webView = new WebContentsView()
+  let webView = new WebContentsView({
+    webPreferences: {
+      preload: path.join(
+        new URL('.', import.meta.url).pathname,
+        'preloadView.js',
+      ),
+    },
+  })
   let clickTracker = new ClickTracker()
   let inputUrl
 
@@ -105,8 +116,8 @@ app.whenReady().then(() => {
   ipcMain.on('resetURL', () => handleResetUrl(inputUrl, webView))
   ipcMain.on('endTest', () => handleEndTest(mainWin, webView, clickTracker))
 
-  ipcMain.on('trackclick', (_, x, y) => {
-    console.log('lcik')
+  ipcMain.on('click', (_, x, y) => {
+    console.log('click at:', x, y)
     clickTracker.trackClick(x, y)
   })
 
