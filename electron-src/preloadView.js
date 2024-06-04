@@ -1,5 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  sendClick: (x, y) => ipcRenderer.send('click', x, y),
+  // Not used right now
+  sendClick: (x, y) => ipcRenderer.send('web-click', x, y),
 })

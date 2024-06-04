@@ -1,9 +1,5 @@
-import {
-  app,
-  ipcMain,
-  BrowserWindow,
-  WebContentsView,
-} from 'electron/main'
+import { app, ipcMain, BrowserWindow, WebContentsView } from 'electron/main'
+import { screen } from 'electron'
 
 import * as path from 'path'
 import ClickTracker from './clicks/ClickTracker.js'
@@ -28,15 +24,24 @@ function handleUrlToGo(offsetY, inputUrl, mainWin, webView, clickTracker) {
     webView.webContents.loadURL(inputUrl)
 
     webView.webContents.on('did-finish-load', () => {
+      console.log('LOG: web finished loading')
       resizeWebView(undefined, offsetY, mainWin, webView)
       clickTracker.startTracking()
-      webView.webContents.executeJavaScript(`
-        document.addEventListener('click', function(e) {
-          window.electronAPI.sendClick(e.clientX, e.clientY)
-        });
-     `)
-
       mainWin.webContents.send('webview-load-finished')
+    })
+
+    webView.webContents.on('input-event', (_event, input) => {
+      if (input.type === 'mouseDown') {
+        const screenPoint = screen.getCursorScreenPoint()
+        const windowPoint = mainWin.getContentBounds()
+
+        const x = screenPoint.x - windowPoint.x
+        const y = screenPoint.y - windowPoint.y - offsetY
+
+        const url = webView.webContents.getURL()
+        clickTracker.trackClick(x, y, url)
+        console.log('mouse down at:', x, y, url)
+      }
     })
 
     webView.webContents.on(
@@ -48,6 +53,7 @@ function handleUrlToGo(offsetY, inputUrl, mainWin, webView, clickTracker) {
     )
 
     webView.webContents.on('did-navigate', (_, url) => {
+      console.log('Navigating to: ', url)
       mainWin.webContents.send('url-updated', url)
     })
 
@@ -84,11 +90,13 @@ function handleEndTest(mainWin, webView, clickTracker) {
     //TODO: add saving data
     const clicks = clickTracker.getClicks()
     console.log(clicks)
+    clickTracker.reset()
     endWebView(mainWin, webView)
   }
 }
 
 function endWebView(mainWin, webView) {
+  webView.webContents.removeAllListeners()
   webView.webContents.closeDevTools()
   mainWin.contentView.removeChildView(webView)
 }
@@ -104,7 +112,7 @@ app.whenReady().then(() => {
     },
   })
   let clickTracker = new ClickTracker()
-  let inputUrl
+  let inputUrl = ''
 
   ipcMain.on('urlToGo', (_, value) => {
     inputUrl = validateAndFixUrl(value[0])
@@ -115,11 +123,6 @@ app.whenReady().then(() => {
   ipcMain.on('forwardAction', () => handleForwardAction(webView))
   ipcMain.on('resetURL', () => handleResetUrl(inputUrl, webView))
   ipcMain.on('endTest', () => handleEndTest(mainWin, webView, clickTracker))
-
-  ipcMain.on('click', (_, x, y) => {
-    console.log('click at:', x, y)
-    clickTracker.trackClick(x, y)
-  })
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
