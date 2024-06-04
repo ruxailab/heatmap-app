@@ -1,6 +1,6 @@
 class ClickTracker {
   constructor() {
-    this.clicks = []
+    this.clicks = new Map()
     this.startTime = null
   }
 
@@ -8,13 +8,24 @@ class ClickTracker {
     this.startTime = Date.now()
   }
 
-  trackClick(x, y) {
+  trackClick(x, y, url) {
     const time = Date.now() - this.startTime
-    this.clicks.push({ x, y, time })
+    const clickData = { x, y, time }
+
+    if (this.clicks.has(url)) {
+      this.clicks.get(url).push(clickData)
+    } else {
+      this.clicks.set(url, [clickData])
+    }
   }
 
   getClicks() {
     return this.clicks
+  }
+
+  reset() {
+    this.clicks = new Map()
+    this.startTime = null
   }
 }
 
