@@ -18,17 +18,21 @@ function createWindow() {
   return mainWin
 }
 
-function handleUrlToGo(offsetY, inputUrl, mainWin, webView, clickTracker) {
-  if (mainWin && inputUrl) {
-    mainWin.contentView.addChildView(webView)
-    webView.webContents.loadURL(inputUrl)
-
-    webView.webContents.on('did-finish-load', () => {
-      console.log('LOG: web finished loading')
-      resizeWebView(undefined, offsetY, mainWin, webView)
-      clickTracker.startTracking()
-      mainWin.webContents.send('webview-load-finished')
-    })
+function createWebView(mainWin, offsetY, clickTracker) {
+  const webView = new WebContentsView({
+    webPreferences: {
+      preload: path.join(
+        new URL('.', import.meta.url).pathname,
+        'preloadView.js',
+      ),
+    },
+  })
+  webView.webContents.on('did-finish-load', () => {
+    console.log('[LOG] url finished loading')
+    resizeWebView(undefined, offsetY, mainWin, webView)
+    clickTracker.startTracking()
+    mainWin.webContents.send('webview-load-finished')
+  })
 
     webView.webContents.on('input-event', async (_event, input) => {
       if (input.type === 'mouseDown') {
@@ -53,28 +57,36 @@ function handleUrlToGo(offsetY, inputUrl, mainWin, webView, clickTracker) {
         const x = screenPoint.x - windowPoint.x + scrollPosition.x
         const y = screenPoint.y - windowPoint.y - offsetY + scrollPosition.y
 
-        const url = webView.webContents.getURL()
-        clickTracker.trackClick(x, y, url)
-        console.log('mouse down at:', x, y, url)
-      }
-    })
+      const url = webView.webContents.getURL()
+      clickTracker.trackClick(x, y, url)
+      console.log('mouse down at:', x, y, url)
+    }
+  })
 
-    webView.webContents.on(
-      'did-fail-load',
-      (_event, _errorCode, errorDescription) => {
-        mainWin.webContents.send('webview-load-failed', errorDescription)
-        endWebView(mainWin, webView)
-      },
-    )
+  webView.webContents.on(
+    'did-fail-load',
+    (_event, _errorCode, errorDescription) => {
+      mainWin.webContents.send('webview-load-failed', errorDescription)
+      endWebView(mainWin, webView)
+    },
+  )
 
-    webView.webContents.on('did-navigate', (_, url) => {
-      console.log('Navigating to: ', url)
-      mainWin.webContents.send('url-updated', url)
-    })
+  webView.webContents.on('did-navigate', (_, url) => {
+    console.log('Navigating to: ', url)
+    mainWin.webContents.send('url-updated', url !== 'about:blank' ? url : '')
+  })
 
-    mainWin.on('resize', () => {
-      resizeWebView(undefined, offsetY, mainWin, webView)
-    })
+  mainWin.on('resize', () => {
+    resizeWebView(undefined, offsetY, mainWin, webView)
+  })
+  return webView
+}
+
+function handleUrlToGo(inputUrl, mainWin, webView) {
+  if (mainWin && inputUrl && webView) {
+    mainWin.contentView.addChildView(webView)
+    webView.setVisible(true)
+    webView.webContents.loadURL(inputUrl)
   }
 }
 
@@ -111,28 +123,22 @@ function handleEndTest(mainWin, webView, clickTracker) {
 }
 
 function endWebView(mainWin, webView) {
-  webView.webContents.removeAllListeners()
-  webView.webContents.closeDevTools()
+  webView.webContents.loadURL('about:blank')
+  webView.setVisible(false)
   mainWin.contentView.removeChildView(webView)
 }
 
 app.whenReady().then(() => {
   const mainWin = createWindow()
-  let webView = new WebContentsView({
-    webPreferences: {
-      preload: path.join(
-        new URL('.', import.meta.url).pathname,
-        'preloadView.js',
-      ),
-    },
-  })
+  let webView = undefined
   let clickTracker = new ClickTracker()
   let inputUrl = ''
 
   ipcMain.on('urlToGo', (_, value) => {
     inputUrl = validateAndFixUrl(value[0])
     console.log('Input value received in main process:', value)
-    handleUrlToGo(value[1], inputUrl, mainWin, webView, clickTracker)
+    if (!webView) webView = createWebView(mainWin, value[1], clickTracker)
+    handleUrlToGo(inputUrl, mainWin, webView)
   })
   ipcMain.on('backAction', () => handleBackAction(webView))
   ipcMain.on('forwardAction', () => handleForwardAction(webView))
