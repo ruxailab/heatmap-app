@@ -1,5 +1,5 @@
 <template>
-  <v-app-bar class="toolbar-menu">
+  <v-app-bar ref="toolbar" class="toolbar-menu">
     <v-row class="align-center">
       <v-col cols="4">
         <v-btn icon @click="goBack">
@@ -30,6 +30,7 @@ import Chronometer from './Chronometer.vue'
 const MAX_URL_LENGTH = 30
 
 export default {
+  name: 'Toolbar',
   components: {
     Chronometer,
   },
@@ -50,14 +51,28 @@ export default {
     },
   },
   created() {
-    const { electronAPI } = window
-    if (electronAPI) {
-      electronAPI.on('url-updated', (value) => {
-        this.url = value
-      })
+    if (this.electronAPI) {
+      this.electronAPI.on('url-updated', this.updateUrl)
+    }
+  },
+  mounted() {
+    this.$nextTick(this.emitToolbarHeight)
+  },
+  beforeUnmount() {
+    if (this.electronAPI) {
+      this.electronAPI.off('url-updated', this.updateUrl)
     }
   },
   methods: {
+    updateUrl(value) {
+      this.url = value
+    },
+    emitToolbarHeight() {
+      if (this.$refs.toolbar && this.$refs.toolbar.$el) {
+        const toolbarHeight = this.$refs.toolbar.$el.clientHeight
+        this.$emit('toolbarHeight', toolbarHeight)
+      }
+    },
     goBack() {
       if (this.electronAPI) this.electronAPI.send('backAction')
       else console.log('electronAPI not defined in toolbar')
