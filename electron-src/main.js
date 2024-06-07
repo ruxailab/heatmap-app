@@ -30,13 +30,28 @@ function handleUrlToGo(offsetY, inputUrl, mainWin, webView, clickTracker) {
       mainWin.webContents.send('webview-load-finished')
     })
 
-    webView.webContents.on('input-event', (_event, input) => {
+    webView.webContents.on('input-event', async (_event, input) => {
       if (input.type === 'mouseDown') {
         const screenPoint = screen.getCursorScreenPoint()
         const windowPoint = mainWin.getContentBounds()
 
-        const x = screenPoint.x - windowPoint.x
-        const y = screenPoint.y - windowPoint.y - offsetY
+        let scrollPosition
+        try {
+          scrollPosition = await webView.webContents.executeJavaScript(
+            `
+            new Promise((resolve) => { 
+              resolve({ x: window.scrollX, y: window.scrollY})
+            });
+            `,
+          )
+        } catch (err) {
+          console.log(err)
+          webView.webContents.openDevTools({ mode: 'detach' })
+          return
+        }
+
+        const x = screenPoint.x - windowPoint.x + scrollPosition.x
+        const y = screenPoint.y - windowPoint.y - offsetY + scrollPosition.y
 
         const url = webView.webContents.getURL()
         clickTracker.trackClick(x, y, url)
