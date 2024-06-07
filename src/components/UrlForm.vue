@@ -2,12 +2,24 @@
   <v-form v-model="validUrl">
     <v-row align="center">
       <v-col>
-        <v-text-field class="pt-5" label="Url" v-model="inputUrl" variant="solo" :rules="urlRules"
-          required></v-text-field>
+        <v-text-field
+          class="pt-5"
+          label="Url"
+          v-model="inputUrl"
+          variant="solo"
+          :rules="urlRules"
+          required
+        ></v-text-field>
       </v-col>
       <v-col>
-        <v-btn class="bg-green" :disabled="!validUrl" @click="sendUrl">Go</v-btn>
-        <v-progress-circular v-if="isLoading" indeterminate color="green"></v-progress-circular>
+        <v-btn class="bg-green" :disabled="!validUrl" @click="sendUrl"
+          >Go</v-btn
+        >
+        <v-progress-circular
+          v-if="isLoading"
+          indeterminate
+          color="green"
+        ></v-progress-circular>
       </v-col>
     </v-row>
   </v-form>
@@ -45,7 +57,7 @@ export default {
         (value) => !!value || 'Url required.',
         (value) => {
           const urlRegex =
-            /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/
+            /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/
           return urlRegex.test(value) || 'Invalid url.'
         },
       ],
