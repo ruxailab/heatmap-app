@@ -27,35 +27,35 @@ function createWebView(mainWin, offsetY, clickTracker) {
       ),
     },
   })
+
   webView.webContents.on('did-finish-load', () => {
     console.log('[LOG] url finished loading')
     resizeWebView(undefined, offsetY, mainWin, webView)
-    clickTracker.startTracking()
     mainWin.webContents.send('webview-load-finished')
   })
 
-    webView.webContents.on('input-event', async (_event, input) => {
-      if (input.type === 'mouseDown') {
-        const screenPoint = screen.getCursorScreenPoint()
-        const windowPoint = mainWin.getContentBounds()
+  webView.webContents.on('input-event', async (_event, input) => {
+    if (input.type === 'mouseDown') {
+      const screenPoint = screen.getCursorScreenPoint()
+      const windowPoint = mainWin.getContentBounds()
 
-        let scrollPosition
-        try {
-          scrollPosition = await webView.webContents.executeJavaScript(
-            `
+      let scrollPosition
+      try {
+        scrollPosition = await webView.webContents.executeJavaScript(
+          `
             new Promise((resolve) => { 
               resolve({ x: window.scrollX, y: window.scrollY})
             });
             `,
-          )
-        } catch (err) {
-          console.log(err)
-          webView.webContents.openDevTools({ mode: 'detach' })
-          return
-        }
+        )
+      } catch (err) {
+        console.log(err)
+        webView.webContents.openDevTools({ mode: 'detach' })
+        return
+      }
 
-        const x = screenPoint.x - windowPoint.x + scrollPosition.x
-        const y = screenPoint.y - windowPoint.y - offsetY + scrollPosition.y
+      const x = screenPoint.x - windowPoint.x + scrollPosition.x
+      const y = screenPoint.y - windowPoint.y - offsetY + scrollPosition.y
 
       const url = webView.webContents.getURL()
       clickTracker.trackClick(x, y, url)
@@ -138,6 +138,10 @@ app.whenReady().then(() => {
     inputUrl = validateAndFixUrl(value[0])
     console.log('Input value received in main process:', value)
     if (!webView) webView = createWebView(mainWin, value[1], clickTracker)
+   
+    // Start tracking timer on the first web load
+    webView.webContents.once('did-finish-load', () => clickTracker.startTracking())
+
     handleUrlToGo(inputUrl, mainWin, webView)
   })
   ipcMain.on('backAction', () => handleBackAction(webView))
