@@ -4,7 +4,7 @@
 
 <script>
 import { RouterView } from 'vue-router'
-import { useStore } from './store'
+import { useStore } from './stores'
 
 export default {
   name: 'App',

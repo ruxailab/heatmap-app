@@ -25,7 +25,7 @@
 </template>
 <script>
 import ClicksHistoryList from '@/components/ClicksHistoryList.vue'
-import { useStore } from '@/store'
+import { useStore } from '@/stores'
 
 export default {
   components: {
