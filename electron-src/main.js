@@ -34,28 +34,28 @@ function createWebView(mainWin, offsetY, clickTracker) {
     mainWin.webContents.send('webview-load-finished')
   })
 
-    webView.webContents.on('input-event', async (_event, input) => {
-      if (input.type === 'mouseDown') {
-        const screenPoint = screen.getCursorScreenPoint()
-        const windowPoint = mainWin.getContentBounds()
+  webView.webContents.on('input-event', async (_event, input) => {
+    if (input.type === 'mouseDown') {
+      const screenPoint = screen.getCursorScreenPoint()
+      const windowPoint = mainWin.getContentBounds()
 
-        let scrollPosition
-        try {
-          scrollPosition = await webView.webContents.executeJavaScript(
-            `
+      let scrollPosition
+      try {
+        scrollPosition = await webView.webContents.executeJavaScript(
+          `
             new Promise((resolve) => { 
               resolve({ x: window.scrollX, y: window.scrollY})
             });
             `,
-          )
-        } catch (err) {
-          console.log(err)
-          webView.webContents.openDevTools({ mode: 'detach' })
-          return
-        }
+        )
+      } catch (err) {
+        console.log(err)
+        webView.webContents.openDevTools({ mode: 'detach' })
+        return
+      }
 
-        const x = screenPoint.x - windowPoint.x + scrollPosition.x
-        const y = screenPoint.y - windowPoint.y - offsetY + scrollPosition.y
+      const x = screenPoint.x - windowPoint.x + scrollPosition.x
+      const y = screenPoint.y - windowPoint.y - offsetY + scrollPosition.y
 
       const url = webView.webContents.getURL()
       clickTracker.trackClick(x, y, url)
@@ -116,6 +116,7 @@ function handleEndTest(mainWin, webView, clickTracker) {
   if (webView.webContents) {
     //TODO: add saving data
     const clicks = clickTracker.getClicks()
+    mainWin.webContents.send('end-clicks', clicks)
     console.log(clicks)
     clickTracker.reset()
     endWebView(mainWin, webView)

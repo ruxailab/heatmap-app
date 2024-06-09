@@ -58,11 +58,6 @@ export default {
   mounted() {
     this.$nextTick(this.emitToolbarHeight)
   },
-  beforeUnmount() {
-    if (this.electronAPI) {
-      this.electronAPI.off('url-updated', this.updateUrl)
-    }
-  },
   methods: {
     updateUrl(value) {
       this.url = value
@@ -87,8 +82,10 @@ export default {
     },
     endTest() {
       this.stopChronometer()
-      if (this.electronAPI) this.electronAPI.send('endTest')
-      else console.log('electronAPI not defined in toolbar')
+      if (this.electronAPI) {
+        this.electronAPI.send('endTest')
+        this.$router.push({ name: 'results' })
+      } else console.log('electronAPI not defined in toolbar')
     },
   },
 }
