@@ -2,7 +2,7 @@
   <v-data-table-virtual
     :headers="headers"
     fixed-header
-    :items="clicksArray"
+    :items="clickData"
     class="elevation-1 scrollable-table"
   >
     <template v-slot:item.time="{ item }">
@@ -38,21 +38,6 @@ export default {
       const milliseconds = time - minutes * 60000 - seconds * 1000
 
       return `${minutes}m ${seconds}s ${milliseconds}ms`
-    },
-  },
-  computed: {
-    clicksArray() {
-      let clickArray = []
-      for (const [url, clicks] of this.clickData.entries()) {
-        for (const click of clicks) {
-          clickArray.push({
-            url: url,
-            time: click.time,
-          })
-        }
-      }
-      clickArray.sort((a, b) => a.time - b.time)
-      return clickArray.map((click, index) => ({ number: index + 1, ...click }))
     },
   },
 }

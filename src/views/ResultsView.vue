@@ -33,8 +33,8 @@ export default {
   },
   data() {
     return {
-      totalClicks: 0,
       totalTime: 0,
+      clicksArrayData: null,
     }
   },
   computed: {
@@ -43,13 +43,25 @@ export default {
     },
     clicksData() {
       const store = useStore()
-      return store.clicksData
+      return this.mapToArray(store.clicksData)
     },
     totalClicks() {
-      //send from electron directly
+      return this.clicksData.length
     },
-    totalTime() {
-      //send from electron directly
+  },
+  methods: {
+    mapToArray(clickData) {
+      let clickArray = []
+      for (const [url, clicks] of clickData.entries()) {
+        for (const click of clicks) {
+          clickArray.push({
+            url: url,
+            time: click.time,
+          })
+        }
+      }
+      clickArray.sort((a, b) => a.time - b.time)
+      return clickArray.map((click, index) => ({ number: index + 1, ...click }))
     },
   },
 }
