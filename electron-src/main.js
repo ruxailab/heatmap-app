@@ -27,10 +27,10 @@ function createWebView(mainWin, offsetY, clickTracker) {
       ),
     },
   })
+
   webView.webContents.on('did-finish-load', () => {
     console.log('[LOG] url finished loading')
     resizeWebView(undefined, offsetY, mainWin, webView)
-    clickTracker.startTracking()
     mainWin.webContents.send('webview-load-finished')
   })
 
@@ -139,6 +139,10 @@ app.whenReady().then(() => {
     inputUrl = validateAndFixUrl(value[0])
     console.log('Input value received in main process:', value)
     if (!webView) webView = createWebView(mainWin, value[1], clickTracker)
+   
+    // Start tracking timer on the first web load
+    webView.webContents.once('did-finish-load', () => clickTracker.startTracking())
+
     handleUrlToGo(inputUrl, mainWin, webView)
   })
   ipcMain.on('backAction', () => handleBackAction(webView))
