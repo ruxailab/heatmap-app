@@ -15,8 +15,9 @@ export default {
     const store = useStore()
 
     if (window.electronAPI) {
-      window.electronAPI.on('end-clicks', (clicksData) => {
+      window.electronAPI.on('end-clicks', (clicksData, dimensions) => {
         store.setClicksData(clicksData)
+        store.setDimensions(dimensions)
       })
     }
   },

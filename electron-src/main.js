@@ -116,7 +116,8 @@ function handleEndTest(mainWin, webView, clickTracker) {
   if (webView.webContents) {
     //TODO: add saving data
     const clicks = clickTracker.getClicks()
-    mainWin.webContents.send('end-clicks', clicks)
+    const { width, height } = webView.getBounds()
+    mainWin.webContents.send('end-clicks', clicks, { width, height })
     console.log(clicks)
     clickTracker.reset()
     endWebView(mainWin, webView)
@@ -139,9 +140,11 @@ app.whenReady().then(() => {
     inputUrl = validateAndFixUrl(value[0])
     console.log('Input value received in main process:', value)
     if (!webView) webView = createWebView(mainWin, value[1], clickTracker)
-   
+
     // Start tracking timer on the first web load
-    webView.webContents.once('did-finish-load', () => clickTracker.startTracking())
+    webView.webContents.once('did-finish-load', () =>
+      clickTracker.startTracking(),
+    )
 
     handleUrlToGo(inputUrl, mainWin, webView)
   })
