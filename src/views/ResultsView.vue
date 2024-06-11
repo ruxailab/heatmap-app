@@ -22,7 +22,7 @@
               </v-row>
             </v-col>
             <v-col cols="6">
-              <HeatmapPreview :data="arrayToHeatMapArray(clicksData)" />
+              <HeatmapCarousel :clicksDataMap="rawClicksData" />
             </v-col>
           </v-row>
         </v-card>
@@ -32,27 +32,29 @@
 </template>
 <script>
 import ClicksHistoryList from '@/components/ClicksHistoryList.vue'
-import HeatmapPreview from '@/components/HeatmapPreview.vue'
+import HeatmapCarousel from '@/components/HeatmapCarousel.vue'
 import { useStore } from '@/stores'
 
 export default {
   components: {
     ClicksHistoryList,
-    HeatmapPreview,
+    HeatmapCarousel,
   },
   data() {
     return {
       totalTime: 0,
-      clicksArrayData: null,
     }
   },
   computed: {
     electronAPI() {
       return window.electronAPI
     },
-    clicksData() {
+    rawClicksData() {
       const store = useStore()
-      return this.mapToArray(store.clicksData)
+      return store.clicksData
+    },
+    clicksData() {
+      return this.mapToArray(this.rawClicksData)
     },
     totalClicks() {
       return this.clicksData.length
@@ -74,18 +76,7 @@ export default {
       clickArray.sort((a, b) => a.time - b.time)
       return clickArray.map((click, index) => ({ number: index + 1, ...click }))
     },
-    arrayToHeatMapArray() {
-      let heatMapArray = []
-      for (const click of this.clicksData) {
-        heatMapArray.push({
-          x: click.x,
-          y: click.y,
-          value: 1,
-        })
-      }
-      return heatMapArray
-    },
   },
 }
 </script>
-<style lang="css"></style>
+<style scoped></style>

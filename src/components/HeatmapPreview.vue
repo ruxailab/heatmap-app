@@ -1,7 +1,7 @@
 <template>
   <div
-    ref="container"
-    id="containerId"
+    :ref="`container-${index}`"
+    :id="`containerId-${index}`"
     :style="{
       aspectRatio: `${aspectRatio}`,
     }"
@@ -13,8 +13,11 @@ import Heatmap from 'visual-heatmap'
 
 export default {
   props: {
-    data: {
+    heatmapData: {
       type: Object,
+      required: true,
+    },
+    index: {
       required: true,
     },
   },
@@ -33,42 +36,13 @@ export default {
     },
   },
   mounted() {
-    console.log(this.data)
-    this.heatmapInstance = Heatmap('#containerId', {
-      size: 30.0, //Radius of the data point, in pixels. Default: 20
-      max: 1, // if not set, will be derived from data
-      min: 0, // if not set, will be derived from data
-      intensity: 1.0,
-      gradient: [
-        {
-          color: [0, 0, 255, 1.0],
-          offset: 0,
-        },
-        {
-          color: [0, 0, 255, 1.0],
-          offset: 0.2,
-        },
-        {
-          color: [0, 255, 0, 1.0],
-          offset: 0.45,
-        },
-        {
-          color: [255, 255, 0, 1.0],
-          offset: 0.85,
-        },
-        {
-          color: [255, 0, 0, 1.0],
-          offset: 1.0,
-        },
-      ],
+    this.$nextTick(() => {
+      this.initializeHeatmap()
     })
+
     window.addEventListener('resize', () => {
       this.updateHeatmap()
     })
-
-    this.updateHeatmap()
-    // const transformedData = this.transformCoordinates(this.data)
-    // this.heatmapInstance.renderData(transformedData)
   },
   beforeUnmount() {
     window.removeEventListener('resize', () => {
@@ -76,31 +50,62 @@ export default {
     })
   },
   methods: {
+    initializeHeatmap() {
+      this.heatmapInstance = Heatmap(`#containerId-${this.index}`, {
+        size: 30.0, //Radius of the data point, in pixels. Default: 20
+        max: 1, // if not set, will be derived from data
+        min: 0, // if not set, will be derived from data
+        intensity: 1.0,
+        gradient: [
+          {
+            color: [0, 0, 255, 1.0],
+            offset: 0,
+          },
+          {
+            color: [0, 0, 255, 1.0],
+            offset: 0.2,
+          },
+          {
+            color: [0, 255, 0, 1.0],
+            offset: 0.45,
+          },
+          {
+            color: [255, 255, 0, 1.0],
+            offset: 0.85,
+          },
+          {
+            color: [255, 0, 0, 1.0],
+            offset: 1.0,
+          },
+        ],
+      })
+
+      this.updateHeatmap()
+    },
     updateHeatmap() {
-      const transformedData = this.transformCoordinates(this.data)
+      if (!this.heatmapData || !this.heatmapInstance) return
+
+      const transformedData = this.transformCoordinates(this.heatmapData)
+      if (!transformedData) return
 
       this.heatmapInstance.clear()
       this.heatmapInstance.resize()
       this.heatmapInstance.renderData(transformedData)
     },
     transformCoordinates(data) {
-      const element = this.$refs.container
-      if (!element) {
-        console.error("Couldn't transform coordinates")
-        return
-      }
+      if (!data) return data
+
+      const container = this.$refs[`container-${this.index}`]
+      if (!container) return
 
       const {
         offsetWidth: newContainerWidth,
         offsetHeight: newContainerHeight,
-      } = element
+      } = container
       const { width: dimensionsWidth, height: dimensionsHeight } =
         this.dimensions
 
-      if (dimensionsWidth === 0 || dimensionsHeight === 0) {
-        console.error('Dimensions width or height is zero')
-        return
-      }
+      if (dimensionsWidth === 0 || dimensionsHeight === 0) return
 
       const scaleX = newContainerWidth / dimensionsWidth
       const scaleY = newContainerHeight / dimensionsHeight
@@ -117,7 +122,7 @@ export default {
 </script>
 
 <style scoped>
-#containerId {
+div {
   border: 1px solid red;
   border-radius: 5px;
 }
