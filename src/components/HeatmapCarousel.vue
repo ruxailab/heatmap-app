@@ -5,7 +5,7 @@
     v-model="activeIndex"
   >
     <v-carousel-item v-for="(heatmap, index) in heatmapData" :key="heatmap[0]">
-      <p class="single-line">{{ heatmap[0] }}</p>
+      <p class="scrollable-url-cell">{{ heatmap[0] }}</p>
       <HeatmapPreview
         ref="heatmaps"
         v-if="activeIndex === index"
@@ -72,9 +72,9 @@ export default {
 }
 </script>
 <style scoped>
-.single-line {
+.scrollable-url-cell {
+  max-width: 50vw;
+  overflow-x: auto;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 </style>

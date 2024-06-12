@@ -2,7 +2,7 @@
   <v-data-table-virtual :height="height" fixed-header class="h-100" :headers="headers"
     :items="clickData">
     <template v-slot:item.url="{ value }">
-      <p class="url-cell">{{ value }}</p>
+      <p class="scrollable-url-cell">{{ value }}</p>
     </template>
   </v-data-table-virtual>
 </template>
@@ -44,8 +44,8 @@ export default {
 </script>
 
 <style scoped>
-/* url-cell { */
-/*   max-width: 30vw; */
+/* .url-cell { */
+/*   max-width: 20dvw; */
 /*   white-space: nowrap; */
 /*   overflow: hidden; */
 /*   text-overflow: ellipsis; */
