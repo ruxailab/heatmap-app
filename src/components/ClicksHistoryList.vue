@@ -1,15 +1,8 @@
 <template>
-  <v-data-table-virtual
-    :headers="headers"
-    fixed-header
-    :items="clickData"
-    class="elevation-1 scrollable-table"
-  >
-    <template v-slot:item.time="{ item }">
-      <div>{{ formatTime(item.time) }}</div>
-    </template>
-    <template v-slot:item.url="{ item }">
-      <div class="url-cell">{{ item.url }}</div>
+  <v-data-table-virtual :height="height" fixed-header class="h-100" :headers="headers"
+    :items="clickData">
+    <template v-slot:item.url="{ value }">
+      <p class="url-cell">{{ value }}</p>
     </template>
   </v-data-table-virtual>
 </template>
@@ -21,13 +14,20 @@ export default {
       type: Object,
       required: true,
     },
+    height: {
+      required: true,
+    },
   },
   data() {
     return {
       headers: [
         { title: 'Number', key: 'number' },
-        { title: 'Time', key: 'time' },
-        { title: 'Url', key: 'url' },
+        {
+          title: 'Time',
+          key: 'time',
+          value: (item) => this.formatTime(item.time),
+        },
+        { title: 'Url', key: 'url' /* nowrap: true, maxWidth: '30vw' */ },
       ],
     }
   },
@@ -44,10 +44,15 @@ export default {
 </script>
 
 <style scoped>
-.url-cell {
+/* url-cell { */
+/*   max-width: 30vw; */
+/*   white-space: nowrap; */
+/*   overflow: hidden; */
+/*   text-overflow: ellipsis; */
+/* } */
+.scrollable-url-cell {
   max-width: 30vw;
+  overflow-x: auto;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 </style>

@@ -109,7 +109,6 @@ export default {
 
       const scaleX = newContainerWidth / dimensionsWidth
       const scaleY = newContainerHeight / dimensionsHeight
-      console.log(scaleX, scaleY)
 
       return data.map((item) => ({
         ...item,

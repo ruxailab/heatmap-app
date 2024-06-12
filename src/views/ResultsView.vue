@@ -1,31 +1,34 @@
 <template>
-  <v-app>
+  <v-app theme="dark">
     <v-main>
-      <v-container fluid fill-height>
-        <v-card class="pa-5" outlined>
-          <v-row>
-            <v-col cols="6">
-              <v-row>
-                <v-card class="bg-indigo wrap-text" elevated>
-                  <v-card-title>
-                    <h1>Total Number of Clicks: {{ totalClicks }}</h1>
-                  </v-card-title>
-                  <v-card-text>
-                    <h2>Total time: {{ totalTime }}</h2>
-                  </v-card-text>
-                </v-card>
-              </v-row>
-              <v-row>
-                <v-col cols="12">
-                  <ClicksHistoryList :clickData="clicksData" />
-                </v-col>
-              </v-row>
-            </v-col>
-            <v-col cols="6">
+      <v-container class="d-flex align-center h-100 w-100" fluid>
+        <v-row class="mx-auto my-2" justify="center" align="stretch">
+          <v-col cols="6">
+            <div class="d-flex flex-column h-100">
+              <v-card
+                theme="light"
+                class="d-flex align-center pa-5 h-100 w-100 elevation-9"
+              >
+                <v-stack>
+                  <h1>Total Number of Clicks: {{ totalClicks }}</h1>
+                  <h2>Total time: {{ totalTime }}</h2>
+                </v-stack>
+              </v-card>
+              <v-card theme="light" class="mt-5 pa-5 h-100 w-100 elevation-9">
+                <ClicksHistoryList
+                  :clickData="clicksData"
+                  :height="tableHeight"
+                />
+              </v-card>
+            </div>
+          </v-col>
+
+          <v-col cols="6">
+            <v-card theme="light" class="d-flex align-center px-10 h-100 w-100 elevation-17">
               <HeatmapCarousel :clicksDataMap="rawClicksData" />
-            </v-col>
-          </v-row>
-        </v-card>
+            </v-card>
+          </v-col>
+        </v-row>
       </v-container>
     </v-main>
   </v-app>
@@ -43,6 +46,7 @@ export default {
   data() {
     return {
       totalTime: 0,
+      tableHeight: 500,
     }
   },
   computed: {
@@ -79,4 +83,9 @@ export default {
   },
 }
 </script>
-<style scoped></style>
+<style scoped>
+.stats {
+  width: 100%;
+  height: 100%;
+}
+</style>
