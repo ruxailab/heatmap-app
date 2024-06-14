@@ -15,17 +15,19 @@ export default {
     const store = useStore()
 
     if (window.electronAPI) {
-      window.electronAPI.on('end-clicks', (clicksData, dimensions) => {
-        store.setClicksData(clicksData)
-        store.setDimensions(dimensions)
-      })
+      window.electronAPI.on(
+        'end-clicks',
+        (clicksData, dimensions, full_dimensions) => {
+          store.setClicksData(clicksData)
+          store.setDimensions(dimensions)
+          store.setDimensionsPerUrl(full_dimensions)
+        },
+      )
     }
   },
 }
 </script>
 
 <style>
-::-webkit-scrollbar {
-  width: 0px;
-}
+
 </style>

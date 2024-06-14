@@ -2,7 +2,7 @@
   <v-app theme="dark">
     <v-main>
       <v-container class="d-flex align-center h-100 w-100" fluid>
-        <v-row class="mx-auto my-2" justify="center" align="stretch">
+        <v-row class="mx-auto my-2" align="center">
           <v-col cols="6">
             <div class="d-flex flex-column h-100">
               <v-card
@@ -24,7 +24,7 @@
           </v-col>
 
           <v-col cols="6">
-            <v-card theme="light" class="d-flex align-center px-10 h-100 w-100 elevation-17">
+            <v-card theme="light" class="scroll pa-10 w-100 elevation-17">
               <HeatmapCarousel :clicksDataMap="rawClicksData" />
             </v-card>
           </v-col>
@@ -87,5 +87,15 @@ export default {
 .stats {
   width: 100%;
   height: 100%;
+}
+
+.scroll {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  height: 100%;
+  max-width: 50vw;
+  width: 100%;
+  overflow: hidden;
 }
 </style>

@@ -18,6 +18,15 @@ function createWindow() {
   return mainWin
 }
 
+/**
+ * Creates a new WebContentsView and sets up event handlers for various WebView events.
+ *
+ * @param {BrowserWindow} mainWin - The main window in which the WebView is created.
+ * @param {number} offsetY - The offset in the Y direction for the WebView.
+ * @param {ClickTracker} clickTracker - An object that tracks clicks in the WebView.
+ *
+ * @returns {WebContentsView} webView - The created WebView.
+ */
 function createWebView(mainWin, offsetY, clickTracker) {
   const webView = new WebContentsView({
     webPreferences: {
@@ -28,10 +37,33 @@ function createWebView(mainWin, offsetY, clickTracker) {
     },
   })
 
-  webView.webContents.on('did-finish-load', () => {
+  webView.webContents.on('did-finish-load', async () => {
     console.log('[LOG] url finished loading')
     resizeWebView(undefined, offsetY, mainWin, webView)
     mainWin.webContents.send('webview-load-finished')
+    //
+    // let dimensions
+    // try {
+    //   dimensions = await webView.webContents.executeJavaScript(`
+    //   new Promise((resolve) => {
+    //     const body = document.body;
+    //     const html = document.documentElement;
+    //     const width = Math.max(body.scrollWidth, body.offsetWidth, html.clientWidth, html.scrollWidth, html.offsetWidth);
+    //     const height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
+    //     resolve({ width, height });
+    //   })
+    //   `)
+    // } catch (err) {
+    //   console.log(err)
+    //   webView.webContents.openDevTools({ mode: 'detach' })
+    //   return
+    // }
+    //
+    // clickTracker.setDimensions(
+    //   webView.webContents.getURL(),
+    //   dimensions.width,
+    //   dimensions.height,
+    // )
   })
 
   webView.webContents.on('input-event', async (_event, input) => {
@@ -60,6 +92,29 @@ function createWebView(mainWin, offsetY, clickTracker) {
       const url = webView.webContents.getURL()
       clickTracker.trackClick(x, y, url)
       console.log('mouse down at:', x, y, url)
+
+      let dimensions
+      try {
+        dimensions = await webView.webContents.executeJavaScript(`
+      new Promise((resolve) => {
+        const body = document.body;
+        const html = document.documentElement;
+        const width = Math.max(body.scrollWidth, body.offsetWidth, html.clientWidth, html.scrollWidth, html.offsetWidth);
+        const height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
+        resolve({ width, height });
+      })
+      `)
+      } catch (err) {
+        console.log(err)
+        webView.webContents.openDevTools({ mode: 'detach' })
+        return
+      }
+
+      clickTracker.setDimensions(
+        webView.webContents.getURL(),
+        dimensions.width,
+        dimensions.height,
+      )
     }
   })
 
@@ -110,14 +165,20 @@ function handleResetUrl(inputUrl, webView) {
  * Used once the user has confirmed that the test has ended.
  *
  * @param {BrowserWindow} mainWin - The window where webView is attached to
- * @param {WebView} webView - The WebView whose test has ended.
+ * @param {WebContentsView} webView - The WebView whose test has ended.
+ * @param {ClickTracker} clickTracker - The ClickTracker instance used to track clicks.
  */
 function handleEndTest(mainWin, webView, clickTracker) {
   if (webView.webContents) {
     //TODO: add saving data
     const clicks = clickTracker.getClicks()
     const { width, height } = webView.getBounds()
-    mainWin.webContents.send('end-clicks', clicks, { width, height })
+    mainWin.webContents.send(
+      'end-clicks',
+      clicks,
+      { width, height },
+      clickTracker.getDimensions(),
+    )
     console.log(clicks)
     clickTracker.reset()
     endWebView(mainWin, webView)
@@ -132,7 +193,7 @@ function endWebView(mainWin, webView) {
 
 app.whenReady().then(() => {
   const mainWin = createWindow()
-  let webView = undefined
+  let webView = null
   let clickTracker = new ClickTracker()
   let inputUrl = ''
 
@@ -167,7 +228,7 @@ app.on('window-all-closed', () => {
 })
 
 function validateAndFixUrl(inputUrl) {
-  // add http or https to url if it doesn't starts With
+  // add http or https to url if it doesn't start With
   const urlRegex = /^(https?):\/\//
   return urlRegex.test(inputUrl) ? inputUrl : 'https://' + inputUrl
 }

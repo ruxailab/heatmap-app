@@ -1,23 +1,39 @@
 <template>
-  <v-carousel
-    hide-delimiters
-    :show-arrows="shouldShowArrows ? 'hover' : false"
-    v-model="activeIndex"
-  >
-    <v-carousel-item v-for="(heatmap, index) in heatmapData" :key="heatmap[0]">
-      <p class="scrollable-url-cell">{{ heatmap[0] }}</p>
+  <div class="carousel-container">
+    <!-- <template> -->
+    <div
+      v-for="(heatmap, index) in heatmapData"
+      :key="heatmap[0]"
+      class="heatmap-container"
+      :style="{
+        // without this, the scroll overflow doesnt work idk why -_-
+        transform: `translateX(0%)`,
+      }"
+    >
       <HeatmapPreview
-        ref="heatmaps"
+        class="heatmap-preview"
         v-if="activeIndex === index"
         :heatmapData="heatmap[1]"
         :index="index"
+        :full-dimensions="dimensionsPer.get(heatmap[0]) ?? null"
       />
-    </v-carousel-item>
-  </v-carousel>
+    </div>
+    <!-- </template> -->
+  </div>
+  <div class="carousel-controls">
+    <VBtn @click="prev" :disabled="activeIndex === 0">Prev</VBtn>
+    <p class="scrollable-url-cell">
+      {{ currentHeatmapUrl }}
+    </p>
+    <VBtn @click="next" :disabled="activeIndex === heatmapData.size - 1">
+      Next
+    </VBtn>
+  </div>
 </template>
 
 <script>
 import HeatmapPreview from './HeatmapPreview.vue'
+import { useStore } from '@/stores'
 
 export default {
   components: {
@@ -45,15 +61,13 @@ export default {
     shouldShowArrows() {
       return this.heatmapData.size > 1
     },
-  },
-  watch: {
-    activeIndex(newIndex) {
-      this.$nextTick(() => {
-        const heatmapComponent = this.$refs.heatmaps[newIndex]
-        if (heatmapComponent) {
-          heatmapComponent.updateHeatmap()
-        }
-      })
+    dimensionsPer() {
+      const store = useStore()
+      return store.dimensionsPerUrl
+    },
+    currentHeatmapUrl() {
+      const urls = Array.from(this.heatmapData.keys())
+      return urls[this.activeIndex] || ''
     },
   },
   methods: {
@@ -68,10 +82,45 @@ export default {
       }
       return heatMapArray
     },
+    next() {
+      if (this.activeIndex < this.heatmapData.size - 1) {
+        this.activeIndex++
+      }
+    },
+    prev() {
+      if (this.activeIndex > 0) {
+        this.activeIndex--
+      }
+    },
   },
 }
 </script>
+
 <style scoped>
+.carousel-container {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.heatmap-container {
+  display: flex;
+  transition: transform 0.3s ease-in-out;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.heatmap-preview {
+  flex: 0 0 100%;
+}
+
+.carousel-controls {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .scrollable-url-cell {
   max-width: 50vw;
   overflow-x: auto;

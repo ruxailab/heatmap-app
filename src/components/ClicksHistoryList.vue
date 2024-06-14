@@ -1,6 +1,6 @@
 <template>
-  <v-data-table-virtual :height="height" fixed-header class="h-100" :headers="headers"
-    :items="clickData">
+  <v-data-table-virtual :height="height" fixed-header class="h-100" :headers="headers" :items="clickData"
+    item-value="url" show-select v-model="selected">
     <template v-slot:item.url="{ value }">
       <p class="scrollable-url-cell">{{ value }}</p>
     </template>
@@ -11,7 +11,7 @@
 export default {
   props: {
     clickData: {
-      type: Object,
+      type: Array,
       required: true,
     },
     height: {
@@ -20,6 +20,7 @@ export default {
   },
   data() {
     return {
+      selected: [],
       headers: [
         { title: 'Number', key: 'number' },
         {

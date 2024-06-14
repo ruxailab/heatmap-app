@@ -5,6 +5,7 @@ export const useStore = defineStore({
   state: () => ({
     clicksData: null,
     dimensions: null,
+    dimensionsPerUrl: new Map(),
   }),
   actions: {
     setClicksData(clicksData) {
@@ -12,6 +13,9 @@ export const useStore = defineStore({
     },
     setDimensions(dimensions) {
       this.dimensions = dimensions
+    },
+    setDimensionsPerUrl(dimensionsPerUrl) {
+      this.dimensionsPerUrl = dimensionsPerUrl
     },
   },
 })

@@ -20,6 +20,10 @@ export default {
     index: {
       required: true,
     },
+    fullDimensions: {
+      type: Map,
+      required: true,
+    },
   },
   data() {
     return {
@@ -32,13 +36,15 @@ export default {
       return store.dimensions
     },
     aspectRatio() {
-      return this.dimensions.width / this.dimensions.height
+      return this.fullDimensions.width / this.fullDimensions.height
+      // return this.dimensions.width / this.dimensions.height
     },
   },
   mounted() {
     this.$nextTick(() => {
       this.initializeHeatmap()
     })
+    console.log(this.fullDimensions)
 
     window.addEventListener('resize', () => {
       this.updateHeatmap()
@@ -103,7 +109,7 @@ export default {
         offsetHeight: newContainerHeight,
       } = container
       const { width: dimensionsWidth, height: dimensionsHeight } =
-        this.dimensions
+        this.fullDimensions
 
       if (dimensionsWidth === 0 || dimensionsHeight === 0) return
 
