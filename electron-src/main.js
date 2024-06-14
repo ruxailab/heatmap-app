@@ -1,11 +1,12 @@
 import { app, ipcMain, BrowserWindow, WebContentsView } from 'electron/main'
-import { screen } from 'electron'
+import { screen, Menu, MenuItem, shell } from 'electron'
 
 import * as path from 'path'
 import ClickTracker from './clicks/ClickTracker.js'
 
 function createWindow() {
   const mainWin = new BrowserWindow({
+    autoHideMenuBar: true,
     width: 800,
     height: 600,
     webPreferences: {
@@ -13,10 +14,65 @@ function createWindow() {
     },
   })
 
+  Menu.setApplicationMenu(createMenu())
   mainWin.loadFile('dist/index.html')
 
   return mainWin
 }
+
+function createMenu() {
+  const menu = new Menu()
+
+  const viewMenu = new Menu()
+  viewMenu.append(new MenuItem({ label: 'Reload', role: 'reload' }))
+  viewMenu.append(
+    new MenuItem({ label: 'Toggle Fullscreen', role: 'togglefullscreen' }),
+  )
+  viewMenu.append(new MenuItem({ label: 'Zoom In', role: 'zoomin' }))
+  viewMenu.append(new MenuItem({ label: 'Zoom Out', role: 'zoomout' }))
+  viewMenu.append(new MenuItem({ label: 'Reset Zoom', role: 'resetzoom' }))
+  viewMenu.append(
+    new MenuItem({ label: 'Toggle Developer Tools', role: 'toggledevtools' }),
+  )
+
+  const helpMenu = new Menu()
+  helpMenu.append(
+    new MenuItem({
+      label: 'Documentation',
+      click: () => {
+        shell.openExternal(
+          'https://github.com/vGerJ02/ruxailab-testing-app/wiki',
+        )
+      },
+    }),
+  )
+  helpMenu.append(
+    new MenuItem({
+      label: 'Check for Updates',
+      click: () => {
+        shell.openExternal(
+          'https://github.com/vGerJ02/ruxailab-testing-app/releases',
+        )
+      },
+    }),
+  )
+  helpMenu.append(
+    new MenuItem({
+      label: 'Report an Issue',
+      click: () => {
+        shell.openExternal(
+          'https://github.com/vGerJ02/ruxailab-testing-app/issues',
+        )
+      },
+    }),
+  )
+
+  menu.append(new MenuItem({ label: 'View', submenu: viewMenu }))
+  menu.append(new MenuItem({ label: 'Help', submenu: helpMenu }))
+
+  return menu
+}
+
 
 /**
  * Creates a new WebContentsView and sets up event handlers for various WebView events.
@@ -245,5 +301,10 @@ function resizeWebView(offsetX = 0, offsetY = 0, mainWindow, webView) {
   offsetX = offsetX === undefined ? oldX : offsetX
   offsetY = offsetY === undefined ? oldY : offsetY
 
-  webView.setBounds({ x: offsetX, y: offsetY, width, height })
+  webView.setBounds({
+    x: offsetX,
+    y: offsetY,
+    width: width - offsetX,
+    height: height - offsetY,
+  })
 }
