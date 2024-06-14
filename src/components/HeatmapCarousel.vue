@@ -1,6 +1,5 @@
 <template>
   <div class="carousel-container">
-    <!-- <template> -->
     <div
       v-for="(heatmap, index) in heatmapData"
       :key="heatmap[0]"
@@ -18,15 +17,20 @@
         :full-dimensions="dimensionsPer.get(heatmap[0]) ?? null"
       />
     </div>
-    <!-- </template> -->
   </div>
-  <div class="carousel-controls">
-    <VBtn @click="prev" :disabled="activeIndex === 0">Prev</VBtn>
-    <p class="scrollable-url-cell">
+  <div class="carousel-controls pt-5">
+    <VBtn rounded="xl" @click="prev" :disabled="activeIndex === 0">
+      <v-icon>mdi-arrow-left</v-icon>
+    </VBtn>
+    <p class="scrollable-url-cell mx-7">
       {{ currentHeatmapUrl }}
     </p>
-    <VBtn @click="next" :disabled="activeIndex === heatmapData.size - 1">
-      Next
+    <VBtn
+      rounded="xl"
+      @click="next"
+      :disabled="activeIndex === heatmapData.size - 1"
+    >
+      <v-icon>mdi-arrow-right</v-icon>
     </VBtn>
   </div>
 </template>

@@ -8,7 +8,6 @@
   ></div>
 </template>
 <script>
-import { useStore } from '@/stores'
 import Heatmap from 'visual-heatmap'
 
 export default {
@@ -31,13 +30,8 @@ export default {
     }
   },
   computed: {
-    dimensions() {
-      const store = useStore()
-      return store.dimensions
-    },
     aspectRatio() {
       return this.fullDimensions.width / this.fullDimensions.height
-      // return this.dimensions.width / this.dimensions.height
     },
   },
   mounted() {
@@ -58,7 +52,7 @@ export default {
   methods: {
     initializeHeatmap() {
       this.heatmapInstance = Heatmap(`#containerId-${this.index}`, {
-        size: 30.0, //Radius of the data point, in pixels. Default: 20
+        size: 30.0, // Radius of the data point, in pixels. Default: 20
         max: 1, // if not set, will be derived from data
         min: 0, // if not set, will be derived from data
         intensity: 1.0,
