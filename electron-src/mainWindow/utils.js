@@ -6,34 +6,23 @@ import { setTimeout } from 'timers/promises'
  *
  * @param {Map<string, {width: number, height: number}>} urlDimensions - A Map where the keys are URLs and the values are objects containing dimensions (width and height).
  * @param {(progress: number, failedUrls: number) => void} progressCallback - A callback function that will be called with the progress of the screenshot taking process.
+ *
+ * @returns {Promise<Map<string, string | null>>} - A Promise that resolves with a Map where the keys are URLs and the values are base64 encoded images or null if the screenshot taking failed.
  */
 export async function takeScreenshots(urlDimensions, progressCallback) {
-  console.log(urlDimensions)
+  let totalUrls = urlDimensions.size
+  let processedUrls = 0
+  let failedUrls = 0
   let imagesMap = new Map()
+
   const win = new BrowserWindow({
     show: false,
     webPreferences: { offscreen: true },
   })
 
-  let totalUrls = urlDimensions.size
-  let processedUrls = 0
-  let failedUrls = 0
   for (let [url, dimensions] of urlDimensions) {
-    console.log('Start loading', url)
     await new Promise((resolve) => {
       const loadListener = () => {
-        // let dimensions
-        // try {
-        //   dimensions = await win.webContents.executeJavaScriptInIsolatedWorld(
-        //     1,
-        //     [{ code: dimensionsScript }],
-        //   )
-        // } catch (error) {
-        //   console.error(error)
-        //   reject()
-        // }
-        //
-        console.log('finish load')
         win.setContentSize(dimensions.width, dimensions.height)
 
         setTimeout(1000).then(() => {
@@ -67,7 +56,6 @@ export async function takeScreenshots(urlDimensions, progressCallback) {
     })
   }
 
-  console.log(imagesMap)
   win.close()
 
   return imagesMap

@@ -1,35 +1,66 @@
 <template>
-  <v-app theme="light">
+  <v-app theme="dark">
     <v-main>
-      <v-container class="d-flex align-center h-100 w-100" fluid>
+      <v-container class="mx-auto h-100 w-100" fluid>
+        <v-row>
+          <v-col cols="12" md="6">
+            <v-card theme="light" class="pa-4" outlined>
+              <v-card-title>Total Clicks</v-card-title>
+              <v-card-text class="text-h5">{{ totalClicks }}</v-card-text>
+            </v-card>
+          </v-col>
+
+          <v-col cols="12" md="6">
+            <v-card theme="light" class="pa-4" outlined>
+              <v-card-title>Total Time Spent</v-card-title>
+              <v-card-text class="text-h5">{{ totalTime }}</v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+
         <v-row no-gutters class="mx-auto my-2" align="center">
           <v-col>
-            <div class="d-flex flex-column h-100">
-              <v-card theme="light" class="d-flex align-center pa-5 h-100 w-100 elevation-9">
-                <div>
-                  <h1>Total Number of Clicks: {{ totalClicks }}</h1>
-                  <h2>Total time: {{ totalTime }}</h2>
+            <v-card theme="light" class="scroll mt-5 pa-10 w-100 elevation-9">
+              <v-card-title class="d-flex align-center justify-space-between">
+                Heatmap Visualizations
+                <div v-if="imagesProgress.fails > 0">
+                  Failed to load
+                  <v-chip color="red" v-if="imagesProgress.fails > 0">
+                    {{ imagesProgress.fails }}
+                  </v-chip>
+                  heatmaps
                 </div>
-              </v-card>
-
-              <v-card theme="light" class="scroll mt-5 pa-10 w-100 elevation-9">
-                <template v-if="isLoading">
-                  <v-card-text class="d-flex flex-column align-center justify-center h-100 w-100">
-                    <v-progress-linear :model-value="progress" indeterminate :width="100" color="primary">
-                    </v-progress-linear>
-                    <p class="mt-5">
-                      {{ progress + ' %' }}
-                    </p>
-                  </v-card-text>
-                </template>
-                <template v-else>
-                  <HeatmapCarousel :urlImages="urlImages" :clicksDataMap="rawClicksData" />
-                </template>
-              </v-card>
-            </div>
+              </v-card-title>
+              <template v-if="isLoading">
+                <v-card-text
+                  class="d-flex flex-column align-center justify-center h-100 w-100"
+                >
+                  <v-progress-linear
+                    :model-value="imagesProgress.progress"
+                    striped
+                    rounded
+                    :height="15"
+                    color="primary"
+                  >
+                  </v-progress-linear>
+                  <p class="mt-5">
+                    {{ imagesProgress.progress + ' %' }}
+                  </p>
+                </v-card-text>
+              </template>
+              <template v-else>
+                <HeatmapCarousel
+                  :urlImages="urlImages"
+                  :clicksDataMap="rawClicksData"
+                />
+              </template>
+            </v-card>
 
             <v-card theme="light" class="mt-5 pa-5 h-100 w-100 elevation-9">
-              <ClicksHistoryList :clickData="clicksData" :height="tableHeight" />
+              <ClicksHistoryList
+                :clickData="clicksData"
+                :height="tableHeight"
+              />
             </v-card>
           </v-col>
         </v-row>
@@ -74,9 +105,9 @@ export default {
     isLoading() {
       return !this.urlImages
     },
-    progress() {
+    imagesProgress() {
       const store = useStore()
-      return Math.floor(store.progress * 100)
+      return { progress: Math.floor(store.progress * 100), fails: store.fails }
     },
   },
   methods: {
