@@ -3,10 +3,19 @@ class ClickTracker {
     this.clicks = new Map()
     this.dimensions = new Map()
     this.startTime = null
+    this.endTime = null
   }
 
   startTracking() {
     this.startTime = Date.now()
+  }
+
+  endTracking() {
+    this.endTime = Date.now()
+  }
+
+  totalDuration() {
+    return this.endTime - this.startTime
   }
 
   setDimensions(url, width, height) {
@@ -15,7 +24,7 @@ class ClickTracker {
   }
 
   getDimensions() {
-    return this.dimensions
+    return new Map(this.dimensions)
   }
 
   trackClick(x, y, url) {
@@ -30,12 +39,13 @@ class ClickTracker {
   }
 
   getClicks() {
-    return this.clicks
+    return new Map(this.clicks)
   }
 
   reset() {
     this.clicks = new Map()
     this.startTime = null
+    this.endTime = null
   }
 }
 

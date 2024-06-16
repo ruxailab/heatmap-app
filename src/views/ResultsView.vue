@@ -13,7 +13,9 @@
           <v-col cols="12" md="6">
             <v-card theme="light" class="pa-4" outlined>
               <v-card-title>Total Time Spent</v-card-title>
-              <v-card-text class="text-h5">{{ totalTime }}</v-card-text>
+              <v-card-text class="text-h5">{{
+                formattedTotalTime
+                }}</v-card-text>
             </v-card>
           </v-col>
         </v-row>
@@ -32,16 +34,9 @@
                 </div>
               </v-card-title>
               <template v-if="isLoading">
-                <v-card-text
-                  class="d-flex flex-column align-center justify-center h-100 w-100"
-                >
-                  <v-progress-linear
-                    :model-value="imagesProgress.progress"
-                    striped
-                    rounded
-                    :height="15"
-                    color="primary"
-                  >
+                <v-card-text class="d-flex flex-column align-center justify-center h-100 w-100">
+                  <v-progress-linear :model-value="imagesProgress.progress" striped rounded :height="15"
+                    color="primary">
                   </v-progress-linear>
                   <p class="mt-5">
                     {{ imagesProgress.progress + ' %' }}
@@ -49,18 +44,12 @@
                 </v-card-text>
               </template>
               <template v-else>
-                <HeatmapCarousel
-                  :urlImages="urlImages"
-                  :clicksDataMap="rawClicksData"
-                />
+                <HeatmapCarousel :urlImages="urlImages" :clicksDataMap="rawClicksData" />
               </template>
             </v-card>
 
             <v-card theme="light" class="mt-5 pa-5 h-100 w-100 elevation-9">
-              <ClicksHistoryList
-                :clickData="clicksData"
-                :height="tableHeight"
-              />
+              <ClicksHistoryList :clickData="clicksData" :height="tableHeight" />
             </v-card>
           </v-col>
         </v-row>
@@ -80,7 +69,6 @@ export default {
   },
   data() {
     return {
-      totalTime: 0,
       tableHeight: 500,
     }
   },
@@ -88,9 +76,11 @@ export default {
     electronAPI() {
       return window.electronAPI
     },
+    store() {
+      return useStore()
+    },
     rawClicksData() {
-      const store = useStore()
-      return store.clicksData
+      return this.store.clicksData
     },
     clicksData() {
       return this.mapToArray(this.rawClicksData)
@@ -98,16 +88,36 @@ export default {
     totalClicks() {
       return this.clicksData.length
     },
+    totalTime() {
+      return this.store.totalTime
+    },
     urlImages() {
-      const store = useStore()
-      return store.urlImages
+      return this.store.urlImages
     },
     isLoading() {
       return !this.urlImages
     },
     imagesProgress() {
-      const store = useStore()
-      return { progress: Math.floor(store.progress * 100), fails: store.fails }
+      return {
+        progress: Math.floor(this.store.progress * 100),
+        fails: this.store.fails,
+      }
+    },
+    formattedTotalTime() {
+      const totalSeconds = Math.floor(this.totalTime / 1000)
+      const milliseconds = this.totalTime % 1000
+      const hours = Math.floor(totalSeconds / 3600)
+      const minutes = Math.floor((totalSeconds % 3600) / 60)
+      const seconds = totalSeconds % 60
+
+      let result = ''
+      if (hours > 0) result += `${hours}h `
+      if (minutes > 0) result += `${minutes}m `
+      if (seconds > 0) result += `${seconds}s`
+      if (hours === 0 && minutes === 0 && seconds > 0)
+        result += ` ${milliseconds}ms`
+
+      return result.trim()
     },
   },
   methods: {

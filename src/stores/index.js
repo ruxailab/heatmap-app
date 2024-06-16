@@ -4,7 +4,7 @@ export const useStore = defineStore({
   id: 'electron',
   state: () => ({
     clicksData: null,
-    dimensions: null,
+    totalTime: 0,
     dimensionsPerUrl: new Map(),
     urlImages: null,
     progress: 0,
@@ -14,8 +14,8 @@ export const useStore = defineStore({
     setClicksData(clicksData) {
       this.clicksData = clicksData
     },
-    setDimensions(dimensions) {
-      this.dimensions = dimensions
+    setTotalTime(time) {
+      this.totalTime = time
     },
     setDimensionsPerUrl(dimensionsPerUrl) {
       this.dimensionsPerUrl = dimensionsPerUrl

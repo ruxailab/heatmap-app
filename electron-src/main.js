@@ -14,8 +14,8 @@ import ClickTracker from './clicks/ClickTracker.js'
 function createWindow() {
   const mainWin = new BrowserWindow({
     autoHideMenuBar: true,
-    width: 800,
-    height: 600,
+    width: 1200,
+    height: 800,
     webPreferences: {
       preload: path.join(new URL('.', import.meta.url).pathname, 'preload.js'),
     },
@@ -47,14 +47,9 @@ function createMenu() {
     new MenuItem({
       label: 'Documentation',
       click: () => {
-        // shell.openExternal(
-        //   'https://github.com/vGerJ02/ruxailab-testing-app/wiki',
-        // )
-        const urlDimensions = new Map([
-          ['https://www.youtube.com', { width: 1920, height: 1080 }],
-          ['https://www.google.com', { width: 800, height: 600 }],
-        ])
-        takeScreenshots(urlDimensions)
+        shell.openExternal(
+          'https://github.com/vGerJ02/ruxailab-testing-app/wiki',
+        )
       },
     }),
   )
@@ -191,16 +186,12 @@ function handleResetUrl(inputUrl, webView) {
  */
 function handleEndTest(mainWin, webView, clickTracker) {
   if (webView.webContents) {
-    //TODO: add saving data
+    clickTracker.endTracking()
+    const time = clickTracker.totalDuration()
     const clicks = clickTracker.getClicks()
     const dimensions = clickTracker.getDimensions()
-    const { width, height } = webView.getBounds()
-    mainWin.webContents.send(
-      'end-clicks',
-      clicks,
-      { width, height },
-      dimensions,
-    )
+
+    mainWin.webContents.send('end-clicks', clicks, time, dimensions)
     console.log(clicks)
     clickTracker.reset()
     endWebView(mainWin, webView)

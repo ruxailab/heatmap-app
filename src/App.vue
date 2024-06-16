@@ -17,14 +17,13 @@ export default {
     if (window.electronAPI) {
       window.electronAPI.on(
         'end-clicks',
-        (clicksData, dimensions, full_dimensions) => {
+        (clicksData, time, full_dimensions) => {
           store.setClicksData(clicksData)
-          store.setDimensions(dimensions)
+          store.setTotalTime(time)
           store.setDimensionsPerUrl(full_dimensions)
         },
       )
       window.electronAPI.on('end-screenshots', (images) => {
-        console.log(images)
         store.setUrlImages(images)
       })
       window.electronAPI.on('screenshots-progress', (progress, fails) => {
