@@ -23,6 +23,9 @@ export default {
       type: Map,
       required: true,
     },
+    image: {
+      requred: true,
+    },
   },
   data() {
     return {
@@ -56,6 +59,9 @@ export default {
         max: 1, // if not set, will be derived from data
         min: 0, // if not set, will be derived from data
         intensity: 1.0,
+        backgroundImage: {
+          url: this.image,
+        },
         gradient: [
           {
             color: [0, 0, 255, 1.0],

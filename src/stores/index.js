@@ -6,6 +6,9 @@ export const useStore = defineStore({
     clicksData: null,
     dimensions: null,
     dimensionsPerUrl: new Map(),
+    urlImages: null,
+    progress: 0,
+    fails: 0,
   }),
   actions: {
     setClicksData(clicksData) {
@@ -16,6 +19,13 @@ export const useStore = defineStore({
     },
     setDimensionsPerUrl(dimensionsPerUrl) {
       this.dimensionsPerUrl = dimensionsPerUrl
+    },
+    setUrlImages(urlImages) {
+      this.urlImages = urlImages
+    },
+    setProgress(progress, fails) {
+      this.progress = progress
+      this.fails = fails
     },
   },
 })

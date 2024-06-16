@@ -9,10 +9,10 @@
                 theme="light"
                 class="d-flex align-center pa-5 h-100 w-100 elevation-9"
               >
-                <v-stack>
+                <div>
                   <h1>Total Number of Clicks: {{ totalClicks }}</h1>
                   <h2>Total time: {{ totalTime }}</h2>
-                </v-stack>
+                </div>
               </v-card>
               <v-card theme="light" class="mt-5 pa-5 h-100 w-100 elevation-9">
                 <ClicksHistoryList
@@ -62,6 +62,10 @@ export default {
     },
     totalClicks() {
       return this.clicksData.length
+    },
+    images() {
+      const store = useStore()
+      return store.urlImages
     },
   },
   methods: {

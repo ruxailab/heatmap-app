@@ -2,6 +2,13 @@ import { app, ipcMain, BrowserWindow, WebContentsView } from 'electron/main'
 import { screen, Menu, MenuItem, shell } from 'electron'
 
 import * as path from 'path'
+
+import {
+  executeInWebView,
+  scrollPositionScript,
+  dimensionsScript,
+} from './webContentsView/handlers.js'
+import { takeScreenshots } from './mainWindow/utils.js'
 import ClickTracker from './clicks/ClickTracker.js'
 
 function createWindow() {
@@ -40,9 +47,14 @@ function createMenu() {
     new MenuItem({
       label: 'Documentation',
       click: () => {
-        shell.openExternal(
-          'https://github.com/vGerJ02/ruxailab-testing-app/wiki',
-        )
+        // shell.openExternal(
+        //   'https://github.com/vGerJ02/ruxailab-testing-app/wiki',
+        // )
+        const urlDimensions = new Map([
+          ['https://www.youtube.com', { width: 1920, height: 1080 }],
+          ['https://www.google.com', { width: 800, height: 600 }],
+        ])
+        takeScreenshots(urlDimensions)
       },
     }),
   )
@@ -73,7 +85,6 @@ function createMenu() {
   return menu
 }
 
-
 /**
  * Creates a new WebContentsView and sets up event handlers for various WebView events.
  *
@@ -97,29 +108,6 @@ function createWebView(mainWin, offsetY, clickTracker) {
     console.log('[LOG] url finished loading')
     resizeWebView(undefined, offsetY, mainWin, webView)
     mainWin.webContents.send('webview-load-finished')
-    //
-    // let dimensions
-    // try {
-    //   dimensions = await webView.webContents.executeJavaScript(`
-    //   new Promise((resolve) => {
-    //     const body = document.body;
-    //     const html = document.documentElement;
-    //     const width = Math.max(body.scrollWidth, body.offsetWidth, html.clientWidth, html.scrollWidth, html.offsetWidth);
-    //     const height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
-    //     resolve({ width, height });
-    //   })
-    //   `)
-    // } catch (err) {
-    //   console.log(err)
-    //   webView.webContents.openDevTools({ mode: 'detach' })
-    //   return
-    // }
-    //
-    // clickTracker.setDimensions(
-    //   webView.webContents.getURL(),
-    //   dimensions.width,
-    //   dimensions.height,
-    // )
   })
 
   webView.webContents.on('input-event', async (_event, input) => {
@@ -127,20 +115,11 @@ function createWebView(mainWin, offsetY, clickTracker) {
       const screenPoint = screen.getCursorScreenPoint()
       const windowPoint = mainWin.getContentBounds()
 
-      let scrollPosition
-      try {
-        scrollPosition = await webView.webContents.executeJavaScript(
-          `
-            new Promise((resolve) => { 
-              resolve({ x: window.scrollX, y: window.scrollY})
-            });
-            `,
-        )
-      } catch (err) {
-        console.log(err)
-        webView.webContents.openDevTools({ mode: 'detach' })
-        return
-      }
+      const scrollPosition = await executeInWebView(
+        webView,
+        scrollPositionScript,
+      )
+      if (!scrollPosition) return
 
       const x = screenPoint.x - windowPoint.x + scrollPosition.x
       const y = screenPoint.y - windowPoint.y - offsetY + scrollPosition.y
@@ -149,22 +128,8 @@ function createWebView(mainWin, offsetY, clickTracker) {
       clickTracker.trackClick(x, y, url)
       console.log('mouse down at:', x, y, url)
 
-      let dimensions
-      try {
-        dimensions = await webView.webContents.executeJavaScript(`
-      new Promise((resolve) => {
-        const body = document.body;
-        const html = document.documentElement;
-        const width = Math.max(body.scrollWidth, body.offsetWidth, html.clientWidth, html.scrollWidth, html.offsetWidth);
-        const height = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
-        resolve({ width, height });
-      })
-      `)
-      } catch (err) {
-        console.log(err)
-        webView.webContents.openDevTools({ mode: 'detach' })
-        return
-      }
+      const dimensions = await executeInWebView(webView, dimensionsScript)
+      if (!dimensions) return
 
       clickTracker.setDimensions(
         webView.webContents.getURL(),
@@ -228,16 +193,31 @@ function handleEndTest(mainWin, webView, clickTracker) {
   if (webView.webContents) {
     //TODO: add saving data
     const clicks = clickTracker.getClicks()
+    const dimensions = clickTracker.getDimensions()
     const { width, height } = webView.getBounds()
     mainWin.webContents.send(
       'end-clicks',
       clicks,
       { width, height },
-      clickTracker.getDimensions(),
+      dimensions,
     )
     console.log(clicks)
     clickTracker.reset()
     endWebView(mainWin, webView)
+
+    takeScreenshots(dimensions, (progress, failedUrls) =>
+      mainWin.webContents.send('screenshots-progress', progress, failedUrls),
+    )
+      .then((imges) => {
+        console.log('Resolved')
+        mainWin.webContents.send('end-screenshots', imges)
+      })
+      .catch((e) => {
+        console.error(e)
+      })
+      .finally(() => {
+        console.log('finally')
+      })
   }
 }
 

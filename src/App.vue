@@ -23,11 +23,16 @@ export default {
           store.setDimensionsPerUrl(full_dimensions)
         },
       )
+      window.electronAPI.on('end-screenshots', (images) => {
+        console.log(images)
+        store.setUrlImages(images)
+      })
+      window.electronAPI.on('screenshots-progress', (progress, fails) => {
+        store.setProgress(progress, fails)
+      })
     }
   },
 }
 </script>
 
-<style>
-
-</style>
+<style></style>
