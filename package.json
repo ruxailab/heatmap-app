@@ -20,6 +20,7 @@
     "@mdi/font": "^7.4.47",
     "electron-squirrel-startup": "^1.0.0",
     "pinia": "^2.1.7",
+    "visual-heatmap": "^2.1.0",
     "vue": "^3.4.21",
     "vuetify": "^3.6.5"
   },

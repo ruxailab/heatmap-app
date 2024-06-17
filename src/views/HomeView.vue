@@ -1,43 +1,53 @@
 <template>
-  <v-container class="fill-height">
-    <v-responsive class="align-centerfill-height mx-auto" max-width="900">
-      <UrlForm :toolbarHeight="localToolbarHeigh" />
-    </v-responsive>
-  </v-container>
+  <v-app>
+    <Toolbar @toolbarHeight="updateHeight" :isRunning="isChronometerRunning" />
+    <v-main>
+      <v-container class="fill-height">
+        <v-responsive class="align-centerfill-height mx-auto" max-width="900">
+          <UrlForm :toolbarHeight="toolbarHeight" />
+        </v-responsive>
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
 <script>
 import UrlForm from '@/components/UrlForm.vue'
+import Toolbar from '@/components/Toolbar.vue'
 
 export default {
   components: {
+    Toolbar,
     UrlForm,
   },
-  inject: ['toolbarHeight'],
-  data() {
+  provide() {
     return {
-      localToolbarHeigh: 0,
+      startChronometer: this.startChronometer,
+      stopChronometer: this.stopChronometer,
+      isChronometerRunning: () => this.isChronometerRunning,
     }
   },
-  mounted() {
-    this.$nextTick(() => {
-      this.localToolbarHeigh = this.toolbarHeight()
-      console.log('from view:' + this.toolbarHeight())
-    })
-    // this.$nextTick(() => {
-    //   const componentElement = this.$el.querySelector('.toolbar-menu')
-    //   if (componentElement) {
-    //     console.log(componentElement)
-    //     this.toolbarHeight = componentElement.offsetHeight
-    //   }
-    // })
+  data() {
+    return {
+      toolbarHeight: 0,
+      isChronometerRunning: false,
+    }
+  },
+  methods: {
+    updateHeight(height) {
+      this.toolbarHeight = height
+    },
+    startChronometer() {
+      this.isChronometerRunning = true
+    },
+    stopChronometer() {
+      this.isChronometerRunning = false
+    },
+    toggleChronometer() {
+      this.isChronometerRunning = !this.isChronometerRunning
+    },
   },
 }
 </script>
 
-<style>
-/* Hides scrollbar */
-::-webkit-scrollbar {
-  width: 0px;
-}
-</style>
+<style></style>

@@ -2,13 +2,20 @@ import { app, ipcMain, BrowserWindow, WebContentsView } from 'electron/main'
 import { screen, Menu, MenuItem, shell } from 'electron'
 
 import * as path from 'path'
+
+import {
+  executeInWebView,
+  scrollPositionScript,
+  dimensionsScript,
+} from './webContentsView/handlers.js'
+import { takeScreenshots } from './mainWindow/utils.js'
 import ClickTracker from './clicks/ClickTracker.js'
 
 function createWindow() {
   const mainWin = new BrowserWindow({
     autoHideMenuBar: true,
-    width: 800,
-    height: 600,
+    width: 1200,
+    height: 800,
     webPreferences: {
       preload: path.join(new URL('.', import.meta.url).pathname, 'preload.js'),
     },
@@ -73,6 +80,15 @@ function createMenu() {
   return menu
 }
 
+/**
+ * Creates a new WebContentsView and sets up event handlers for various WebView events.
+ *
+ * @param {BrowserWindow} mainWin - The main window in which the WebView is created.
+ * @param {number} offsetY - The offset in the Y direction for the WebView.
+ * @param {ClickTracker} clickTracker - An object that tracks clicks in the WebView.
+ *
+ * @returns {WebContentsView} webView - The created WebView.
+ */
 function createWebView(mainWin, offsetY, clickTracker) {
   const webView = new WebContentsView({
     webPreferences: {
@@ -82,10 +98,10 @@ function createWebView(mainWin, offsetY, clickTracker) {
       ),
     },
   })
-  webView.webContents.on('did-finish-load', () => {
+
+  webView.webContents.on('did-finish-load', async () => {
     console.log('[LOG] url finished loading')
     resizeWebView(undefined, offsetY, mainWin, webView)
-    clickTracker.startTracking()
     mainWin.webContents.send('webview-load-finished')
   })
 
@@ -94,20 +110,11 @@ function createWebView(mainWin, offsetY, clickTracker) {
       const screenPoint = screen.getCursorScreenPoint()
       const windowPoint = mainWin.getContentBounds()
 
-      let scrollPosition
-      try {
-        scrollPosition = await webView.webContents.executeJavaScript(
-          `
-            new Promise((resolve) => { 
-              resolve({ x: window.scrollX, y: window.scrollY})
-            });
-            `,
-        )
-      } catch (err) {
-        console.log(err)
-        webView.webContents.openDevTools({ mode: 'detach' })
-        return
-      }
+      const scrollPosition = await executeInWebView(
+        webView,
+        scrollPositionScript,
+      )
+      if (!scrollPosition) return
 
       const x = screenPoint.x - windowPoint.x + scrollPosition.x
       const y = screenPoint.y - windowPoint.y - offsetY + scrollPosition.y
@@ -115,6 +122,15 @@ function createWebView(mainWin, offsetY, clickTracker) {
       const url = webView.webContents.getURL()
       clickTracker.trackClick(x, y, url)
       console.log('mouse down at:', x, y, url)
+
+      const dimensions = await executeInWebView(webView, dimensionsScript)
+      if (!dimensions) return
+
+      clickTracker.setDimensions(
+        webView.webContents.getURL(),
+        dimensions.width,
+        dimensions.height,
+      )
     }
   })
 
@@ -166,15 +182,33 @@ function handleResetUrl(inputUrl, webView) {
  *
  * @param {BrowserWindow} mainWin - The window where webView is attached to
  * @param {WebContentsView} webView - The WebView whose test has ended.
- * @param {ClickTracker} clickTracker - The ClickTracker instance that tracks clicks.
+ * @param {ClickTracker} clickTracker - The ClickTracker instance used to track clicks.
  */
 function handleEndTest(mainWin, webView, clickTracker) {
   if (webView.webContents) {
-    //TODO: add saving data
+    clickTracker.endTracking()
+    const time = clickTracker.totalDuration()
     const clicks = clickTracker.getClicks()
+    const dimensions = clickTracker.getDimensions()
+
+    mainWin.webContents.send('end-clicks', clicks, time, dimensions)
     console.log(clicks)
     clickTracker.reset()
     endWebView(mainWin, webView)
+
+    takeScreenshots(dimensions, (progress, failedUrls) =>
+      mainWin.webContents.send('screenshots-progress', progress, failedUrls),
+    )
+      .then((imges) => {
+        console.log('Resolved')
+        mainWin.webContents.send('end-screenshots', imges)
+      })
+      .catch((e) => {
+        console.error(e)
+      })
+      .finally(() => {
+        console.log('finally')
+      })
   }
 }
 
@@ -186,7 +220,7 @@ function endWebView(mainWin, webView) {
 
 app.whenReady().then(() => {
   const mainWin = createWindow()
-  let webView = undefined
+  let webView = null
   let clickTracker = new ClickTracker()
   let inputUrl = ''
 
@@ -194,6 +228,12 @@ app.whenReady().then(() => {
     inputUrl = validateAndFixUrl(value[0])
     console.log('Input value received in main process:', value)
     if (!webView) webView = createWebView(mainWin, value[1], clickTracker)
+
+    // Start tracking timer on the first web load
+    webView.webContents.once('did-finish-load', () =>
+      clickTracker.startTracking(),
+    )
+
     handleUrlToGo(inputUrl, mainWin, webView)
   })
   ipcMain.on('backAction', () => handleBackAction(webView))
