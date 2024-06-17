@@ -97,10 +97,15 @@ export default {
       this.heatmapInstance.clear()
       this.heatmapInstance.resize()
       this.heatmapInstance.renderData(transformedData)
-    },
-    transformCoordinates(data) {
-      if (!data) return data
 
+      const dimensions = this.containerDimensions()
+      this.heatmapInstance.setBackgroundImage({
+        url: this.image,
+        height: dimensions.newContainerHeight,
+        width: dimensions.newContainerWidth,
+      })
+    },
+    containerDimensions() {
       const container = this.$refs[`container-${this.index}`]
       if (!container) return
 
@@ -108,6 +113,17 @@ export default {
         offsetWidth: newContainerWidth,
         offsetHeight: newContainerHeight,
       } = container
+
+      return { newContainerWidth, newContainerHeight }
+    },
+    transformCoordinates(data) {
+      if (!data) return data
+
+      const container = this.$refs[`container-${this.index}`]
+      if (!container) return
+
+      const { newContainerWidth, newContainerHeight } =
+        this.containerDimensions()
       const { width: dimensionsWidth, height: dimensionsHeight } =
         this.fullDimensions
 
@@ -130,5 +146,6 @@ export default {
 div {
   border: 1px solid red;
   border-radius: 5px;
+  min-width: 10vw;
 }
 </style>
