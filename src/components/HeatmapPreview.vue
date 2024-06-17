@@ -41,7 +41,6 @@ export default {
     this.$nextTick(() => {
       this.initializeHeatmap()
     })
-    console.log(this.fullDimensions)
 
     window.addEventListener('resize', () => {
       this.updateHeatmap()
@@ -59,9 +58,6 @@ export default {
         max: 1, // if not set, will be derived from data
         min: 0, // if not set, will be derived from data
         intensity: 1.0,
-        backgroundImage: {
-          url: this.image,
-        },
         gradient: [
           {
             color: [0, 0, 255, 1.0],
