@@ -20,7 +20,7 @@ export default {
       required: true,
     },
     fullDimensions: {
-      type: Map,
+      type: Object,
       required: true,
     },
     image: {

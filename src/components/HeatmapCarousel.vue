@@ -1,23 +1,38 @@
 <template>
-  <div class="carousel-container">
-    <div v-for="(heatmap, index) in heatmapData" :key="heatmap[0]" class="heatmap-container" :style="{
-      // without this, the scroll overflow doesnt work idk why -_-
-      transform: `translateX(0%)`,
-    }">
-      <HeatmapPreview class="heatmap-preview" v-if="activeIndex === index" :heatmapData="heatmap[1]" :index="index"
-        :full-dimensions="dimensionsPer.get(heatmap[0]) ?? null" :image="urlImages.get(heatmap[0]) ?? null" />
-    </div>
-  </div>
-  <div class="carousel-controls pt-5">
+  <div class="carousel-controls py-5">
     <VBtn rounded="xl" @click="prev" :disabled="activeIndex === 0">
       <v-icon>mdi-arrow-left</v-icon>
     </VBtn>
     <p class="scrollable-url-cell mx-7">
       {{ currentHeatmapUrl }}
     </p>
-    <VBtn rounded="xl" @click="next" :disabled="activeIndex === heatmapData.size - 1">
+    <VBtn
+      rounded="xl"
+      @click="next"
+      :disabled="activeIndex === heatmapData.size - 1"
+    >
       <v-icon>mdi-arrow-right</v-icon>
     </VBtn>
+  </div>
+  <div class="carousel-container">
+    <div
+      v-for="(heatmap, index) in heatmapData"
+      :key="heatmap[0]"
+      class="heatmap-container"
+      :style="{
+        // without this, the scroll overflow doesnt work idk why -_-
+        transform: `translateX(0%)`,
+      }"
+    >
+      <HeatmapPreview
+        class="heatmap-preview"
+        v-if="activeIndex === index"
+        :heatmapData="heatmap[1]"
+        :index="index"
+        :full-dimensions="dimensionsPer.get(heatmap[0]) ?? null"
+        :image="urlImages.get(heatmap[0]) ?? null"
+      />
+    </div>
   </div>
 </template>
 
