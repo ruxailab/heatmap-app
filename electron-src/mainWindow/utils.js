@@ -39,6 +39,7 @@ export async function takeScreenshots(urlDimensions, progressCallback) {
               win.webContents.off('did-finish-load', loadListener)
               processedUrls++
               progressCallback(processedUrls / totalUrls, failedUrls)
+              console.log('[LOG] Taking images: Processed:', processedUrls, 'Failed:', failedUrls)
               resolve()
             })
         })
@@ -57,6 +58,7 @@ export async function takeScreenshots(urlDimensions, progressCallback) {
   }
 
   win.close()
+  win.destroy()
 
   return imagesMap
 }
