@@ -30,7 +30,6 @@ import Chronometer from './Chronometer.vue'
 const MAX_URL_LENGTH = 30
 
 export default {
-  name: 'Toolbar',
   components: {
     Chronometer,
   },

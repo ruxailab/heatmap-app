@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import AuthController from '@/controllers/AuthController'
+import router from '@/router'
 
 const auth = new AuthController()
 
@@ -27,6 +28,7 @@ export const useAuthStore = defineStore({
       try {
         await auth.logout()
         this.setUser(null)
+        router.push('/signin')
       } catch (error) {
         console.error('Error signing out: ', error)
         throw error
