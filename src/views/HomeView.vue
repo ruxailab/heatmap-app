@@ -6,6 +6,7 @@
         <v-responsive class="align-centerfill-height mx-auto" max-width="900">
           <UrlForm :toolbarHeight="toolbarHeight" />
         </v-responsive>
+        <v-btn color="#F9A826" class="mt-4" @click="logout">Log out</v-btn>
       </v-container>
     </v-main>
   </v-app>
@@ -14,6 +15,7 @@
 <script>
 import UrlForm from '@/components/UrlForm.vue'
 import Toolbar from '@/components/Toolbar.vue'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   components: {
@@ -45,6 +47,11 @@ export default {
     },
     toggleChronometer() {
       this.isChronometerRunning = !this.isChronometerRunning
+    },
+    logout() {
+      useAuthStore().logout()
+      console.log(useAuthStore().user)
+      this.$router.push('/signin')
     },
   },
 }
