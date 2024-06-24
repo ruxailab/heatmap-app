@@ -1,6 +1,11 @@
 import { initializeApp } from 'firebase/app'
 // import { getAnalytics } from 'firebase/analytics'
-import { getAuth, connectAuthEmulator } from 'firebase/auth'
+import {
+  getAuth,
+  connectAuthEmulator,
+  setPersistence,
+  browserLocalPersistence,
+} from 'firebase/auth'
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
 // import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
 import { getStorage, connectStorageEmulator } from 'firebase/storage'
@@ -29,6 +34,10 @@ const storage = getStorage(firebaseApp, `gs://${firebaseConfig.storageBucket}`)
 // connectFunctionsEmulator(fbFunctions, 'localhost', 5001)
 // connectStorageEmulator(storage, '127.0.0.1', 9199)
 // }
+
+auth
+  .setPersistence(browserLocalPersistence)
+  .catch((e) => console.error('Error setting Persistence ', e))
 
 export { auth, db, storage }
 // export { auth, db, analytics, fbFunctions, storage }

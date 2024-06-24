@@ -13,12 +13,7 @@ export const useAuthStore = defineStore({
       this.user = user
     },
     async checkUser() {
-      try {
-        const user = await auth.autoLogin()
-        this.setUser(user)
-      } catch (error) {
-        console.error('Error getting current user: ', error)
-      }
+      auth.checkUser()
     },
     async signIn(email, password) {
       const user = await auth.signIn(email, password)

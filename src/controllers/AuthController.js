@@ -1,4 +1,5 @@
 import { auth } from '@/firebase'
+import { useAuthStore } from '@/stores/auth'
 import i18n from '@/plugins/i18n'
 const { t } = i18n.global
 
@@ -20,7 +21,8 @@ export default class AuthController {
       )
       return userCredential.user
     } catch (error) {
-      const errorMessage = t(`firebaseErrors.${error.code}`) || t('firebaseErrors.unknown')
+      const errorMessage =
+        t(`firebaseErrors.${error.code}`) || t('firebaseErrors.unknown')
       throw new Error(errorMessage)
     }
   }
@@ -56,16 +58,14 @@ export default class AuthController {
     }
   }
 
-  getCurrentUser() {
-    return new Promise((resolve, reject) => {
-      const unsubscribe = onAuthStateChanged(
-        auth,
-        (user) => {
-          unsubscribe()
-          resolve(user)
-        },
-        reject,
-      )
+  checkUser() {
+    auth.onAuthStateChanged((user) => {
+      const authStore = useAuthStore()
+      if (user) {
+        authStore.setUser(user)
+      } else {
+        authStore.setUser(null)
+      }
     })
   }
 }
