@@ -1,6 +1,9 @@
 <template>
   <v-app>
-    <Toolbar @toolbarHeight="updateHeight" :isRunning="isChronometerRunning" />
+    <TaskToolbar
+      @toolbarHeight="updateHeight"
+      :isRunning="isChronometerRunning"
+    />
     <v-main>
       <v-container class="fill-height">
         <v-responsive class="align-centerfill-height mx-auto" max-width="900">
@@ -14,12 +17,12 @@
 
 <script>
 import UrlForm from '@/components/UrlForm.vue'
-import Toolbar from '@/components/Toolbar.vue'
+import TaskToolbar from '@/components/tasks/TaskToolbar.vue'
 import { useAuthStore } from '@/stores/auth'
 
 export default {
   components: {
-    Toolbar,
+    TaskToolbar,
     UrlForm,
   },
   provide() {

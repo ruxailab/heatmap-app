@@ -58,8 +58,8 @@
   </v-app>
 </template>
 <script>
-import ClicksHistoryList from '@/components/ClicksHistoryList.vue'
-import HeatmapCarousel from '@/components/HeatmapCarousel.vue'
+import ClicksHistoryList from '@/components/results/ClicksHistoryList.vue'
+import HeatmapCarousel from '@/components/results/HeatmapCarousel.vue'
 import { useStore } from '@/stores'
 
 export default {
