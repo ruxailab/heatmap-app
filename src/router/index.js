@@ -1,39 +1,64 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
+import { auth } from '@/firebase'
+
+import { useAuthStore } from '@/stores/auth'
+
+import BlankLayout from '@/layouts/BlankLayout.vue'
+import MainLayout from '@/layouts/MainLayout.vue'
+
 import HomeView from '@/views/HomeView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import ResultsView from '@/views/ResultsView.vue'
 import SignInView from '@/views/SignInView.vue'
 import SignUpView from '@/views/SignUpView.vue'
-import { useAuthStore } from '@/stores/auth'
-import { auth } from '@/firebase'
+import TasksView from '@/views/TasksView.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     {
       path: '/signin',
-      name: 'Login',
-      component: SignInView,
+      component: BlankLayout,
+      children: [
+        {
+          path: '',
+          name: 'Login',
+          component: SignInView,
+        },
+      ],
     },
     {
       path: '/signup',
-      name: 'Sign Up',
-      component: SignUpView,
+      component: BlankLayout,
+      children: [
+        {
+          path: '',
+          name: 'SignUp',
+          component: SignUpView,
+        },
+      ],
     },
     {
       path: '/',
       name: 'home',
-      component: HomeView,
-    },
-    {
-      path: '/dashboard',
-      name: 'Dashboard',
-      component: DashboardView,
-    },
-    {
-      path: '/results',
-      name: 'results',
-      component: ResultsView,
+      component: MainLayout,
+      children: [
+        {
+          path: '',
+          name: 'dashboard',
+          component: DashboardView,
+        },
+        {
+          path: '/tasks',
+          name: 'Tasks',
+          component: TasksView,
+        },
+        {
+          path: '/results',
+          name: 'results',
+          component: ResultsView,
+        },
+      ],
     },
   ],
 })

@@ -1,5 +1,11 @@
 <template>
-  <v-app-bar app dark dense>
+  <v-app-bar app theme="dark" dense>
+    <!-- Go back arrow -->
+    <v-btn v-if="canGoBack" icon @click="goBack">
+      <v-icon>mdi-arrow-left</v-icon>
+    </v-btn>
+
+    <!-- Logo and title -->
     <v-avatar class="ml-4" size="40">
       <v-img src="@/assets/logo.svg" max-height="40" contain></v-img>
     </v-avatar>
@@ -7,20 +13,34 @@
 
     <v-spacer></v-spacer>
 
-    <v-select class="pa-4 w-0" :items="languages" v-model="selectedLanguage" label="Select Language"
-      prepend-inner-icon="mdi-earth" variant="solo" bg-color="white" dense hide-details></v-select>
+    <v-select
+      class="pa-4 w-0"
+      :items="languages"
+      v-model="selectedLanguage"
+      label="Select Language"
+      prepend-inner-icon="mdi-earth"
+      variant="solo"
+      bg-color="white"
+      dense
+      hide-details
+    ></v-select>
 
     <!-- User Icon and Menu -->
     <v-menu v-model="menu">
       <template v-slot:activator="{ props }">
-        <v-card v-bind="props" class="pa-4 me-4" elevation="0">
-          <v-icon class="mr-2">mdi-account-circle</v-icon>
-          <span>{{ userName }}</span>
-        </v-card>
+        <v-btn v-bind="props" class="pa-0 me-4">
+          <v-icon size="x-large">mdi-account-circle</v-icon>
+          <v-icon small>mdi-chevron-down</v-icon>
+        </v-btn>
       </template>
-      <v-list>
+      <v-list theme="light">
+        <v-list-item>
+          <v-list-item-title>Username</v-list-item-title>
+          <span> {{ userName }}</span>
+        </v-list-item>
+        <v-divider class="border-opacity-100" color="gray"></v-divider>
         <v-list-item @click="logout">
-          <v-list-item-title>Logout</v-list-item-title>
+          <v-list-item-title>Sign-out</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
@@ -36,12 +56,25 @@ export default {
       selectedLanguage: this.$i18n.locale,
       languages: this.$i18n.availableLocales,
       userName: '',
+      canGoBack: false,
     }
+  },
+  watch: {
+    $route() {
+      this.checkCanGoBack()
+    },
   },
   created() {
     this.getUserName()
+    this.checkCanGoBack()
   },
   methods: {
+    checkCanGoBack() {
+      this.canGoBack = window.history.length > 1
+    },
+    goBack() {
+      this.$router.go(-1)
+    },
     toggleMenu() {
       this.menu = !this.menu
     },
