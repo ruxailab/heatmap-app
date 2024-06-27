@@ -2,37 +2,44 @@
   <v-container class="d-flex justify-center align-center h-75">
     <v-row>
       <v-col cols="12" class="text-center">
+        <!-- Title and explanation -->
         <h1 class="title">Enter Your Test Code</h1>
         <p class="text-subtitle-1">Enter the test link to get the tasks</p>
-        <p
-          class="text-subtitle-2 help-link"
-          href="#"
-          @click.prevent="dialog = true"
-        >
+        <p class="text-subtitle-2 help-link" @click.prevent="dialog = true">
           Need help?
         </p>
       </v-col>
       <v-col cols="12" class="d-flex justify-center align-center">
         <v-text-field
+          :readonly="loading"
           v-model="taskCode"
           label="Enter the test url"
           variant="outlined"
           class="input-field"
           :rules="rules"
+          @click="$emit('clearErrors')"
           ref="taskCodeInput"
           @input="valid = $refs.taskCodeInput.validate()"
         ></v-text-field>
       </v-col>
+
+      <!-- Submit button -->
       <v-col cols="12" class="text-center">
         <v-btn
+          v-if="!loading"
           @click="emitFetchEvent"
           color="black"
           class="mb-2 w-25"
           :disabled="!valid"
           >Get tasks !</v-btn
         >
+        <v-btn v-else color="black" class="mb-2 w-25" disabled
+          ><v-progress-circular indeterminate
+        /></v-btn>
       </v-col>
     </v-row>
+
+    <!-- More Help -->
     <v-dialog v-model="dialog" max-width="500">
       <v-card>
         <v-card-title class="headline">Help Information</v-card-title>
@@ -55,22 +62,39 @@
 
 <script>
 export default {
+  props: {
+    errorMessage: {
+      type: String,
+      default: '',
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+  },
   data() {
     return {
       taskCode: '',
+
       dialog: false,
       valid: false,
-      rules: [(value) => !!value || 'Input is required'],
+      rules: [
+        (value) => !!value || 'Input is required',
+        (_value) => {
+          if (!this.errorMessage) return true
+          return this.errorMessage
+        },
+      ],
     }
+  },
+  watch: {
+    errorMessage() {
+      this.$refs.taskCodeInput.validate()
+    },
   },
   methods: {
     emitFetchEvent() {
-      this.$emit('fetch', this.extractTestId(this.taskCode))
-    },
-    extractTestId(url) {
-      const regex = /testview\/([^/?]+)/
-      const match = url.match(regex)
-      return match ? match[1] : null
+      this.$emit('fetch', this.taskCode)
     },
   },
 }
@@ -93,6 +117,7 @@ export default {
 }
 
 .help-link {
+  display: inline-block;
   cursor: pointer;
   color: #1976d2;
 }

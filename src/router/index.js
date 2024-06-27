@@ -11,7 +11,6 @@ import DashboardView from '@/views/DashboardView.vue'
 import ResultsView from '@/views/ResultsView.vue'
 import SignInView from '@/views/SignInView.vue'
 import SignUpView from '@/views/SignUpView.vue'
-import TasksView from '@/views/TasksView.vue'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -48,11 +47,7 @@ const router = createRouter({
           name: 'dashboard',
           component: DashboardView,
         },
-        {
-          path: '/tasks',
-          name: 'Tasks',
-          component: TasksView,
-        },
+
         {
           path: '/results',
           name: 'results',
