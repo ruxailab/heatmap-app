@@ -6,7 +6,7 @@
     />
     <v-main>
       <v-container class="fill-height">
-        <v-responsive class="align-centerfill-height mx-auto" max-width="900">
+        <v-responsive class="align-center fill-height mx-auto" max-width="900">
           <UrlForm :toolbarHeight="toolbarHeight" />
         </v-responsive>
         <v-btn color="#F9A826" class="mt-4" @click="logout">Log out</v-btn>

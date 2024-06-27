@@ -10,32 +10,15 @@
         </p>
       </v-col>
       <v-col cols="12" class="d-flex justify-center align-center">
-        <v-text-field
-          :readonly="loading"
-          v-model="taskCode"
-          label="Enter the test url"
-          variant="outlined"
-          class="input-field"
-          :rules="rules"
-          @click="$emit('clearErrors')"
-          ref="taskCodeInput"
-          @input="valid = $refs.taskCodeInput.validate()"
-        ></v-text-field>
+        <v-text-field :readonly="loading" v-model="taskCode" label="Enter the test url" variant="outlined"
+          class="input-field" :rules="rules" @click="$emit('clearErrors')" ref="taskCodeInput"
+          @input="valid = $refs.taskCodeInput.validate()"></v-text-field>
       </v-col>
 
       <!-- Submit button -->
       <v-col cols="12" class="text-center">
-        <v-btn
-          v-if="!loading"
-          @click="emitFetchEvent"
-          color="black"
-          class="mb-2 w-25"
-          :disabled="!valid"
-          >Get tasks !</v-btn
-        >
-        <v-btn v-else color="black" class="mb-2 w-25" disabled
-          ><v-progress-circular indeterminate
-        /></v-btn>
+        <v-btn v-if="true" @click="emitFetchEvent" color="black" class="mb-2 w-25" :disabled="!valid"
+          :loading="loading">Get tasks !</v-btn>
       </v-col>
     </v-row>
 
@@ -46,9 +29,7 @@
         <v-card-text>
           Enter the URL of the test to obtain the task to do. It should be
           similar to:
-          <v-code class="text-center my-6 example-url"
-            >https://ruxailab.com/testview/sW0Tkis6SJawYurG1hGM</v-code
-          >
+          <v-code class="text-center my-6 example-url">https://ruxailab.com/testview/sW0Tkis6SJawYurG1hGM</v-code>
           If you have any issues, please contact support.
         </v-card-text>
         <v-card-actions>

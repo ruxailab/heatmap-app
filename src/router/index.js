@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 
 import BlankLayout from '@/layouts/BlankLayout.vue'
 import MainLayout from '@/layouts/MainLayout.vue'
+import TestLayout from '@/layouts/TestLayout.vue'
 
 import HomeView from '@/views/HomeView.vue'
 import DashboardView from '@/views/DashboardView.vue'
@@ -54,6 +55,11 @@ const router = createRouter({
           component: ResultsView,
         },
       ],
+    },
+    {
+      path: '/task',
+      name: 'TaskStart',
+      component: TestLayout,
     },
   ],
 })
