@@ -1,6 +1,15 @@
 <template>
   <v-container class="mx-auto h-100 w-100" fluid>
-    <h1 class="text-h3 my-4">Results</h1>
+    <v-row class="d-flex" justify="space-between" align="center">
+      <v-col cols="auto">
+        <h1 class="text-h3 my-4">Results</h1>
+      </v-col>
+      <v-col cols="auto">
+        <v-btn color="#ff9800" rounded="lg" @click="$router.push('/')" class="mr-4"
+          >Start a new test</v-btn
+        >
+      </v-col>
+    </v-row>
     <v-divider class="border-opacity-50 mb-4"></v-divider>
 
     <!-- Fast Stats -->
