@@ -1,22 +1,27 @@
 <template>
   <v-app-bar ref="toolbar" class="toolbar-menu">
     <v-row class="align-center">
+      <!-- Navigation Buttons -->
       <v-col cols="4">
-        <v-btn icon @click="goBack">
+        <v-btn icon @click="navigation('backAction')">
           <v-icon>mdi-arrow-left</v-icon>
         </v-btn>
-        <v-btn icon @click="goForward">
+        <v-btn icon @click="navigation('forwardAction')">
           <v-icon>mdi-arrow-right</v-icon>
         </v-btn>
-        <v-btn icon @click="goHome">
+        <v-btn icon @click="navigation('resetURL')">
           <v-icon>mdi-home</v-icon>
         </v-btn>
       </v-col>
+
+      <!-- URL display -->
       <v-col class="text-center">
         <p class="font-weight-bold" :title="url">
           {{ truncatedUrl }}
         </p>
       </v-col>
+
+      <!-- Chronometer and End test -->
       <v-col cols="4" class="justify-end d-flex align-center mr-4">
         <Chronometer />
         <v-btn @click="endTest" class="bg-green">End test</v-btn>
@@ -50,9 +55,7 @@ export default {
     },
   },
   created() {
-    if (this.electronAPI) {
-      this.electronAPI.on('url-updated', this.updateUrl)
-    }
+    this.electronAPI?.on('url-updated', this.updateUrl)
   },
   mounted() {
     this.$nextTick(this.emitToolbarHeight)
@@ -67,16 +70,8 @@ export default {
         this.$emit('toolbarHeight', toolbarHeight)
       }
     },
-    goBack() {
-      if (this.electronAPI) this.electronAPI.send('backAction')
-      else console.log('electronAPI not defined in toolbar')
-    },
-    goForward() {
-      if (this.electronAPI) this.electronAPI.send('forwardAction')
-      else console.log('electronAPI not defined in toolbar')
-    },
-    goHome() {
-      if (this.electronAPI) this.electronAPI.send('resetURL')
+    navigation(action) {
+      if (this.electronAPI) this.electronAPI.send(action)
       else console.log('electronAPI not defined in toolbar')
     },
     endTest() {

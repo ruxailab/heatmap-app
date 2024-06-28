@@ -57,7 +57,6 @@ export default {
     const { electronAPI } = window
     if (electronAPI) {
       electronAPI.on('webview-load-finished', () => {
-        console.log('WEB LOAD FINISH')
         this.startChronometer()
         this.isLoading = false
       })
