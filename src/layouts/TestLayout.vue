@@ -1,8 +1,15 @@
 <template>
   <v-app theme="light">
-    <TaskToolbar @toolbarHeight="updateHeight" :isRunning="isChronometerRunning" />
+    <TaskToolbar
+      @toolbarHeight="updateHeight"
+      :isRunning="isChronometerRunning"
+    />
     <v-main>
-      <TestingView v-if="inputUrl && toolbarHeight != 0" :toolbarHeight="toolbarHeight" :input-url="this.inputUrl" />
+      <TestingView
+        v-if="inputUrl && toolbarHeight != 0"
+        :toolbarHeight="toolbarHeight"
+        :input-url="this.inputUrl"
+      />
     </v-main>
   </v-app>
 </template>
@@ -50,4 +57,8 @@ export default {
 }
 </script>
 
-<style></style>
+<style>
+::-webkit-scrollbar {
+  display: none;
+}
+</style>

@@ -1,10 +1,5 @@
 <template>
   <v-app-bar app theme="dark" dense>
-    <!-- Go back arrow -->
-    <v-btn v-if="canGoBack" icon @click="goBack">
-      <v-icon>mdi-arrow-left</v-icon>
-    </v-btn>
-
     <!-- Logo and title -->
     <v-avatar class="ml-4" size="40">
       <v-img src="@/assets/logo.svg" max-height="40" contain></v-img>
@@ -66,15 +61,8 @@ export default {
   },
   created() {
     this.getUserName()
-    this.checkCanGoBack()
   },
   methods: {
-    checkCanGoBack() {
-      this.canGoBack = window.history.length > 1
-    },
-    goBack() {
-      this.$router.go(-1)
-    },
     toggleMenu() {
       this.menu = !this.menu
     },

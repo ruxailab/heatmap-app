@@ -7,7 +7,7 @@
       @fetch="handleFetch"
       @clearErrors="handleClear"
     />
-    <TasksList v-else :tasks="userTasks" />
+    <TasksList v-else @onBack="goBack" :tasks="userTasks" />
   </v-container>
 </template>
 
@@ -32,6 +32,9 @@ export default {
     }
   },
   methods: {
+    goBack() {
+      this.userTasks = []
+    },
     handleClear() {
       this.errorMessage = ''
     },

@@ -1,16 +1,34 @@
 <template>
   <v-container class="pa-8">
-    <h1 class="my-2">Choose a Task...</h1>
+
+    <!-- Title -->
+    <v-row align="center">
+      <v-col cols="auto">
+        <v-btn icon="mdi-arrow-left" variant="flat" @click="goBack"> </v-btn>
+      </v-col>
+      <v-col>
+        <h1 class="my-2">Choose a Task...</h1>
+      </v-col>
+    </v-row>
+
+    <!-- Task cards -->
     <v-row>
-      <!-- Task cards -->
       <v-col cols="12" v-for="(task, index) in tasks" :key="index">
-        <v-card class="pa-4 d-flex flex-column justify-space-between" variant="outlined">
+        <v-card
+          class="pa-4 d-flex flex-column justify-space-between"
+          variant="outlined"
+        >
           <v-card-title class="headline">{{ task.taskName }}</v-card-title>
           <v-card-text>
             <FoldableTaskDesc :task="task" />
           </v-card-text>
           <v-card-actions class="d-flex justify-end">
-            <v-btn @click="startTask(task)" variant="tonal" color="success" append-icon="mdi-arrow-right">
+            <v-btn
+              @click="startTask(task)"
+              variant="tonal"
+              color="success"
+              append-icon="mdi-arrow-right"
+            >
               Start task
             </v-btn>
           </v-card-actions>
@@ -22,7 +40,6 @@
     <v-dialog v-model="dialog" max-width="600px">
       <NoUrlDialog :task="selectedTask" />
     </v-dialog>
-
   </v-container>
 </template>
 
@@ -68,26 +85,11 @@ export default {
         this.url,
       )
     },
-    // toggleDescription(taskName) {
-    //   this.showFullDescription =
-    //     this.showFullDescription === taskName ? null : taskName
-    // },
+    goBack() {
+      this.$emit('onBack')
+    },
   },
 }
 </script>
-<style scoped>
-.text-container {
-  position: relative;
-  max-height: 4.5em;
-  overflow: hidden;
-}
 
-.fade-out {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 100%;
-  height: 1.5em;
-  background: linear-gradient(to right, transparent, white 99%);
-}
-</style>
+<style scoped></style>
