@@ -1,29 +1,27 @@
 <template>
-  <v-app>
+  <v-app theme="light">
     <TaskToolbar
       @toolbarHeight="updateHeight"
       :isRunning="isChronometerRunning"
     />
     <v-main>
-      <v-container class="fill-height">
-        <v-responsive class="align-center fill-height mx-auto" max-width="900">
-          <UrlForm :toolbarHeight="toolbarHeight" />
-        </v-responsive>
-        <v-btn color="#F9A826" class="mt-4" @click="logout">Log out</v-btn>
-      </v-container>
+      <TestingView
+        v-if="inputUrl && toolbarHeight != 0"
+        :toolbarHeight="toolbarHeight"
+        :input-url="this.inputUrl"
+      />
     </v-main>
   </v-app>
 </template>
 
 <script>
-import UrlForm from '@/components/UrlForm.vue'
 import TaskToolbar from '@/components/tasks/TaskToolbar.vue'
-import { useAuthStore } from '@/stores/auth'
+import TestingView from '@/views/TestingView.vue'
 
 export default {
   components: {
     TaskToolbar,
-    UrlForm,
+    TestingView,
   },
   provide() {
     return {
@@ -36,7 +34,11 @@ export default {
     return {
       toolbarHeight: 0,
       isChronometerRunning: false,
+      inputUrl: '',
     }
+  },
+  created() {
+    this.inputUrl = this.$route.query.url || ''
   },
   methods: {
     updateHeight(height) {
@@ -51,13 +53,12 @@ export default {
     toggleChronometer() {
       this.isChronometerRunning = !this.isChronometerRunning
     },
-    logout() {
-      useAuthStore().logout()
-      console.log(useAuthStore().user)
-      this.$router.push('/signin')
-    },
   },
 }
 </script>
 
-<style></style>
+<style>
+::-webkit-scrollbar {
+  display: none;
+}
+</style>
