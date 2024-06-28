@@ -127,7 +127,7 @@ function createWebView(mainWin, offsetY, clickTracker) {
       if (!dimensions) return
 
       clickTracker.setDimensions(
-        webView.webContents.getURL(),
+        url,
         dimensions.width,
         dimensions.height,
       )
