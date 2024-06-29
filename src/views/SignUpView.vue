@@ -131,7 +131,7 @@ export default {
       const auth = useAuthStore()
       try {
         await auth.signUp(this.email, this.password)
-        if (auth.user) this.$router.push({ name: 'home' })
+        if (auth.user) this.$router.push({ name: 'dashboard' })
       } catch (error) {
         this.error = error.message
       } finally {

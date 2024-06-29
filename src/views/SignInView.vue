@@ -14,21 +14,22 @@
               <v-form class="mx-3" @keyup.enter="onSignIn()">
                 <v-text-field
                   v-model="email"
+                  variant="outlined"
+                  density="compact"
                   :label="$t('SIGNIN.email')"
-                  outlined
                   prepend-inner-icon="mdi-account-circle"
-                  dense
                 />
 
                 <v-text-field
+                  class="mt-2"
                   v-model="password"
+                  variant="outlined"
+                  density="compact"
                   :label="$t('SIGNIN.password')"
-                  prepend-inner-icon="mdi-lock"
-                  outlined
-                  :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                   :type="showPassword ? 'text' : 'password'"
-                  dense
-                  @click:append="showPassword = !showPassword"
+                  prepend-inner-icon="mdi-lock"
+                  :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                  @click:append-inner="showPassword = !showPassword"
                 />
               </v-form>
 
@@ -90,7 +91,7 @@ export default {
       try {
         await auth.signIn(this.email, this.password)
         if (auth.user) {
-          this.$router.push('/dashboard')
+          this.$router.push({ name: 'dashboard' })
         }
       } catch (error) {
         this.error = error.message
@@ -99,7 +100,7 @@ export default {
       }
     },
     redirectToSignup() {
-      this.$router.push('/signup')
+      this.$router.push({ name: 'Login' })
     },
   },
 }
