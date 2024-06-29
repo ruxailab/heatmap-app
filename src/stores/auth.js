@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia'
 import AuthController from '@/controllers/AuthController'
 import router from '@/router'
+import UserController from '@/controllers/UserController'
 
 const auth = new AuthController()
+const userController = new UserController()
 
 export const useAuthStore = defineStore({
   id: 'auth',
@@ -22,6 +24,12 @@ export const useAuthStore = defineStore({
     },
     async signUp(email, password) {
       const user = await auth.signUp(email, password)
+
+      await userController.create({
+        id: user.uid,
+        email: user.email,
+      })
+
       this.setUser(user)
     },
     async logout() {
