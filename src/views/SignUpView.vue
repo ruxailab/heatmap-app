@@ -14,35 +14,37 @@
               <v-form v-model="valid" class="mx-3" @keyup.enter="onSignUp()">
                 <v-text-field
                   v-model="email"
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   :label="$t('SIGNIN.email')"
                   :rules="emailRules"
                   prepend-inner-icon="mdi-account-circle"
                 />
 
                 <v-text-field
+                  class="mt-2"
                   v-model="password"
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   :label="$t('SIGNIN.password')"
-                  prepend-inner-icon="mdi-lock"
-                  :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
                   :type="showPassword ? 'text' : 'password'"
                   :rules="passwordRules"
-                  @click:append="showPassword = !showPassword"
+                  prepend-inner-icon="mdi-lock"
+                  :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                  @click:append-inner="showPassword = !showPassword"
                 />
 
                 <v-text-field
+                  class="mt-2"
                   v-model="confirmpassword"
-                  dense
-                  outlined
+                  density="compact"
+                  variant="outlined"
                   :label="$t('SIGNIN.confirmPassword')"
-                  prepend-inner-icon="mdi-lock"
-                  :append-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
                   :type="showConfirmPassword ? 'text' : 'password'"
                   :rules="[comparePassword]"
-                  @click:append="showConfirmPassword = !showConfirmPassword"
+                  prepend-inner-icon="mdi-lock"
+                  :append-inner-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                  @click:append-inner="showConfirmPassword = !showConfirmPassword"
                 />
               </v-form>
 
@@ -129,7 +131,7 @@ export default {
       const auth = useAuthStore()
       try {
         await auth.signUp(this.email, this.password)
-        if (auth.user) this.$router.push('/dashboard')
+        if (auth.user) this.$router.push({ name: 'home' })
       } catch (error) {
         this.error = error.message
       } finally {
