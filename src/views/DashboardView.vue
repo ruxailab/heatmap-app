@@ -1,18 +1,18 @@
 <template>
   <v-container fluid class="pa-0 h-100">
     <CodeInput
-      v-if="userTasks.length < 1"
+      v-if="tasks.length < 1"
       :loading="loading"
       :error-message="errorMessage"
       @fetch="handleFetch"
       @clearErrors="handleClear"
     />
-    <TasksList v-else @onBack="goBack" :tasks="userTasks" />
+    <TasksList v-else @onBack="goBack" :tasks="tasks" />
   </v-container>
 </template>
 
 <script>
-import { db } from '@/firebase'
+import { auth, db } from '@/firebase'
 import { doc, getDoc } from 'firebase/firestore'
 
 import CodeInput from '@/components/dashboard/CodeInput.vue'
@@ -28,12 +28,12 @@ export default {
       taskCode: '',
       loading: false,
       errorMessage: '',
-      userTasks: [],
+      tasks: [],
     }
   },
   methods: {
     goBack() {
-      this.userTasks = []
+      this.tasks = []
     },
     handleClear() {
       this.errorMessage = ''
@@ -52,7 +52,7 @@ export default {
     async fetchData(search) {
       this.loading = true
       this.errorMessage = ''
-      this.userTasks = []
+      this.tasks = []
 
       const trimmedSearch = search?.trim()
 
@@ -68,8 +68,24 @@ export default {
 
         const data = docSnap.data()
 
+        if (data?.testType !== 'User')
+          this.errorMessage = 'Only User tests allowed.'
+
         if (data?.testStructure?.userTasks) {
-          this.userTasks = data.testStructure.userTasks
+          const userTasks = data.testStructure.userTasks
+          const answersTasks = await this.getAnswersOfTest(data.answersDocId)
+          console.log(answersTasks)
+
+          // Get if they are completed
+          this.tasks = userTasks.map((task, index) => {
+            return {
+              ...task,
+              completed: answersTasks[index]
+                ? answersTasks[index].completed
+                : false,
+            }
+          })
+          console.log(this.tasks)
         } else {
           this.errorMessage = 'No tasks available in the document structure.'
         }
@@ -79,6 +95,26 @@ export default {
         this.loading = false
       }
     },
+    async getAnswersOfTest(answersId) {
+      console.log(answersId)
+      const docRef = doc(db, 'answers', answersId)
+
+      try {
+        const docSnap = await getDoc(docRef)
+
+        const data = docSnap.data()
+
+        const useruid = auth.currentUser.uid
+        console.log(useruid)
+        const answers = data?.taskAnswers?.[useruid]?.tasks
+        if (answers) {
+          return answers
+        }
+      } catch (error) {
+        this.errorMessage = 'Error fetching answers document: ' + error.message
+      }
+    },
   },
 }
 </script>
+
