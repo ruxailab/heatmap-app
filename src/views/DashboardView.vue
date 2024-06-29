@@ -110,6 +110,7 @@ export default {
         if (answers) {
           return answers
         }
+        return []
       } catch (error) {
         this.errorMessage = 'Error fetching answers document: ' + error.message
       }
