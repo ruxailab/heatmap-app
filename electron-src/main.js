@@ -11,15 +11,35 @@ import {
 import { takeScreenshots } from './mainWindow/utils.js'
 import ClickTracker from './clicks/ClickTracker.js'
 
-function createWindow() {
-  const mainWin = new BrowserWindow({
+/**
+ * Creates a new BrowserWindow with specific configurations.
+ *
+ * This function creates a new BrowserWindow instance with the following
+ * configurations:
+ * - Auto-hide menu bar: true
+ * - Width: 1200
+ * - Height: 800
+ * - Preload: preload.js
+ *
+ * If options are provided, they will override the default configurations.
+ *
+ * After creating the window, it sets the application menu using the
+ * `createMenu` function and loads the 'dist/index.html' file into the window.
+ *
+ * @param {Electron.BrowserWindowConstructorOptions} [options] - Optional configurations to override the defaults.
+ * @returns {BrowserWindow} The newly created BrowserWindow instance.
+ */
+function createWindow(options = {}) {
+  const defaultOptions = {
     autoHideMenuBar: true,
     width: 1200,
     height: 800,
     webPreferences: {
       preload: path.join(new URL('.', import.meta.url).pathname, 'preload.js'),
     },
-  })
+  }
+
+  const mainWin = new BrowserWindow({ ...defaultOptions, ...options })
 
   Menu.setApplicationMenu(createMenu())
   mainWin.loadFile('dist/index.html')
@@ -27,6 +47,17 @@ function createWindow() {
   return mainWin
 }
 
+/**
+ * Creates a new application menu.
+ *
+ * This function creates a new Menu instance and populates it with 'View' and 'Help' submenus.
+ * The 'View' submenu contains options for reloading the page, toggling fullscreen, zooming in/out,
+ * resetting zoom, and toggling developer tools.
+ * The 'Help' submenu contains options for opening the documentation, checking for updates, and
+ * reporting an issue. Each of these options opens a corresponding URL in the default web browser.
+ *
+ * @returns {Menu} The newly created Menu instance.
+ */
 function createMenu() {
   const menu = new Menu()
 
@@ -126,11 +157,7 @@ function createWebView(mainWin, offsetY, clickTracker) {
       const dimensions = await executeInWebView(webView, dimensionsScript)
       if (!dimensions) return
 
-      clickTracker.setDimensions(
-        url,
-        dimensions.width,
-        dimensions.height,
-      )
+      clickTracker.setDimensions(url, dimensions.width, dimensions.height)
     }
   })
 
@@ -153,6 +180,17 @@ function createWebView(mainWin, offsetY, clickTracker) {
   return webView
 }
 
+/**
+ * Handles the action of navigating to a specific URL in a WebView.
+ *
+ * This function checks if the mainWin, inputUrl, and webView parameters are not null or undefined.
+ * If they are not, it adds the WebView as a child view of the mainWin's contentView,
+ * makes the WebView visible, and loads the inputUrl into the WebView's webContents.
+ *
+ * @param {string} inputUrl - The URL to navigate to.
+ * @param {BrowserWindow} mainWin - The main BrowserWindow instance.
+ * @param {WebContentsView} webView - The WebView instance to navigate in.
+ */
 function handleUrlToGo(inputUrl, mainWin, webView) {
   if (mainWin && inputUrl && webView) {
     mainWin.contentView.addChildView(webView)
@@ -161,14 +199,39 @@ function handleUrlToGo(inputUrl, mainWin, webView) {
   }
 }
 
+/**
+ * Handles the back action for a given WebView.
+ *
+ * This function checks if the WebView's webContents can go back in history.
+ * If it can, it triggers the goBack action on the webContents.
+ *
+ * @param {WebContentsView} webView - The WebContentsView instance to handle the back action for.
+ */
 function handleBackAction(webView) {
   if (webView.webContents.canGoBack()) webView.webContents.goBack()
 }
 
+/**
+ * Handles the forward action for a given WebView.
+ *
+ * This function checks if the WebView's webContents can go forward in history.
+ * If it can, it triggers the goForward action on the webContents.
+ *
+ * @param {WebContentsView} webView - The WebContentsView instance to handle the forward action for.
+ */
 function handleForwardAction(webView) {
   if (webView.webContents.canGoForward()) webView.webContents.goForward()
 }
 
+/**
+ * Resets the URL of a given WebView.
+ *
+ * This function checks if the inputUrl is not null or undefined.
+ * If it is not, it loads the inputUrl into the WebView's webContents.
+ *
+ * @param {string} inputUrl - The URL to load into the WebView.
+ * @param {WebContentsView} webView - The WebContentsView instance to reset the URL for.
+ */
 function handleResetUrl(inputUrl, webView) {
   if (inputUrl) webView.webContents.loadURL(inputUrl)
 }
@@ -181,7 +244,7 @@ function handleResetUrl(inputUrl, webView) {
  * Used once the user has confirmed that the test has ended.
  *
  * @param {BrowserWindow} mainWin - The window where webView is attached to
- * @param {WebContentsView} webView - The WebView whose test has ended.
+ * @param {WebContentsView} webView - The WebContentsView whose test has ended.
  * @param {ClickTracker} clickTracker - The ClickTracker instance used to track clicks.
  */
 function handleEndTest(mainWin, webView, clickTracker) {
@@ -212,6 +275,15 @@ function handleEndTest(mainWin, webView, clickTracker) {
   }
 }
 
+/**
+ * Ends the session of a given WebView in a BrowserWindow.
+ *
+ * This function loads 'about:blank' into the WebView's webContents,
+ * makes the WebView invisible, and removes the WebView from the mainWin's contentView.
+ *
+ * @param {BrowserWindow} mainWin - The main BrowserWindow instance.
+ * @param {WebContentsView} webView - The WebContentsView instance to end the session for.
+ */
 function endWebView(mainWin, webView) {
   webView.webContents.loadURL('about:blank')
   webView.setVisible(false)
@@ -254,12 +326,32 @@ app.on('window-all-closed', () => {
   }
 })
 
+/**
+ * Validates a given URL.
+ *
+ * Checks if the inputUrl starts with 'http://' or 'https://'.
+ * If it doesn't, it prepends 'https://' to the inputUrl.
+ *
+ * @param {string} inputUrl - The URL to validate and fix.
+ * @returns {string} The validated and fixed URL.
+ */
 function validateAndFixUrl(inputUrl) {
-  // add http or https to url if it doesn't start With
   const urlRegex = /^(https?):\/\//
   return urlRegex.test(inputUrl) ? inputUrl : 'https://' + inputUrl
 }
 
+/**
+ * Resizes a WebContentsView within a BrowserWindow.
+ *
+ * This function adjusts the bounds of the WebView to fit within the content bounds of the mainWindow.
+ * The offsetX and offsetY parameters specify the top-left corner of the WebView relative to the mainWindow.
+ * If either parameter is undefined, the current position of the WebView is used.
+ *
+ * @param {number} [offsetX=0] - The x-coordinate of the WebView's top-left corner.
+ * @param {number} [offsetY=0] - The y-coordinate of the WebView's top-left corner.
+ * @param {BrowserWindow} mainWindow - The main BrowserWindow instance.
+ * @param {WebContentsView} webView - The WebContentsView instance to resize.
+ */
 function resizeWebView(offsetX = 0, offsetY = 0, mainWindow, webView) {
   if (!mainWindow || !webView) {
     console.log('mainWindow or webView not ready')
