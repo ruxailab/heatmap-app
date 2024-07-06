@@ -5,9 +5,8 @@
         <h1 class="text-h3 my-4">Results</h1>
       </v-col>
       <v-col cols="auto">
-        <v-btn color="#ff9800" rounded="lg" @click="$router.push('/')" class="mr-4"
-          >Start a new test</v-btn
-        >
+        <v-btn color="#ff9800" rounded="lg" @click="$router.push({ name: 'dashboard' })" class="mr-4">Start a new
+          test</v-btn>
       </v-col>
     </v-row>
     <v-divider class="border-opacity-50 mb-4"></v-divider>
@@ -24,7 +23,9 @@
       <v-col cols="12" md="6">
         <v-card rounded="xl" theme="light" class="pa-4" outlined>
           <v-card-title>Total Time Spent</v-card-title>
-          <v-card-text class="text-h5">{{ formattedTotalTime }}</v-card-text>
+          <v-card-text class="text-h5">{{
+            formattedTime(totalTime)
+            }}</v-card-text>
         </v-card>
       </v-col>
     </v-row>
@@ -44,16 +45,8 @@
             </div>
           </v-card-title>
           <template v-if="isLoading">
-            <v-card-text
-              class="d-flex flex-column align-center justify-center h-100 w-100"
-            >
-              <v-progress-linear
-                :model-value="imagesProgress.progress"
-                striped
-                rounded
-                :height="15"
-                color="primary"
-              >
+            <v-card-text class="d-flex flex-column align-center justify-center h-100 w-100">
+              <v-progress-linear :model-value="imagesProgress.progress" striped rounded :height="15" color="primary">
               </v-progress-linear>
               <p class="mt-5">
                 {{ imagesProgress.progress + ' %' }}
@@ -61,10 +54,7 @@
             </v-card-text>
           </template>
           <template v-else>
-            <HeatmapCarousel
-              :urlImages="urlImages"
-              :clicksDataMap="rawClicksData"
-            />
+            <HeatmapCarousel :urlImages="urlImages" :clicksDataMap="rawClicksData" />
           </template>
         </v-card>
 
@@ -124,22 +114,6 @@ export default {
         fails: this.store.fails,
       }
     },
-    formattedTotalTime() {
-      const totalSeconds = Math.floor(this.totalTime / 1000)
-      const hours = Math.floor(totalSeconds / 3600)
-      const minutes = Math.floor((totalSeconds % 3600) / 60)
-      const seconds = totalSeconds % 60
-      const milliseconds = this.totalTime % 1000
-
-      let result = ''
-      if (hours > 0) result += `${hours}h `
-      if (minutes > 0) result += `${minutes}m `
-      if (seconds > 0) result += `${seconds}s`
-      if (hours === 0 && minutes === 0 && seconds > 0)
-        result += ` ${milliseconds}ms`
-
-      return result.trim()
-    },
   },
   methods: {
     mapToArray(clickData) {
@@ -156,6 +130,22 @@ export default {
       }
       clickArray.sort((a, b) => a.time - b.time)
       return clickArray.map((click, index) => ({ number: index + 1, ...click }))
+    },
+    formattedTime(time) {
+      const totalSeconds = Math.floor(time / 1000)
+      const hours = Math.floor(totalSeconds / 3600)
+      const minutes = Math.floor((totalSeconds % 3600) / 60)
+      const seconds = totalSeconds % 60
+      const milliseconds = time % 1000
+
+      let result = ''
+      if (hours > 0) result += `${hours}h `
+      if (minutes > 0) result += `${minutes}m `
+      if (seconds > 0) result += `${seconds}s`
+      if (hours === 0 && minutes === 0 && seconds > 0)
+        result += ` ${milliseconds}ms`
+
+      return result.trim()
     },
   },
 }
