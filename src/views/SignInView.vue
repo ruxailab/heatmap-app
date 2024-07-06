@@ -56,7 +56,7 @@
               <v-card-actions class="justify-center mt-1">
                 <p>
                   <a
-                    style="color: #f9a826; text-decoration: underline"
+                    style="color: #f9a826; text-decoration: underline; cursor: pointer;"
                     @click="redirectToSignup"
                     >{{ $t('SIGNIN.dont-have-account') }}</a
                   >
@@ -100,7 +100,7 @@ export default {
       }
     },
     redirectToSignup() {
-      this.$router.push({ name: 'Login' })
+      this.$router.push({ name: 'SignUp' })
     },
   },
 }

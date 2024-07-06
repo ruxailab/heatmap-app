@@ -43,8 +43,12 @@
                   :type="showConfirmPassword ? 'text' : 'password'"
                   :rules="[comparePassword]"
                   prepend-inner-icon="mdi-lock"
-                  :append-inner-icon="showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'"
-                  @click:append-inner="showConfirmPassword = !showConfirmPassword"
+                  :append-inner-icon="
+                    showConfirmPassword ? 'mdi-eye' : 'mdi-eye-off'
+                  "
+                  @click:append-inner="
+                    showConfirmPassword = !showConfirmPassword
+                  "
                 />
               </v-form>
 
@@ -71,7 +75,11 @@
               <v-card-actions class="justify-center mt-1">
                 <p>
                   <a
-                    style="color: #f9a826; text-decoration: underline"
+                    style="
+                      color: #f9a826;
+                      text-decoration: underline;
+                      cursor: pointer;
+                    "
                     @click="redirectToSignin"
                     >{{ $t('SIGNIN.alreadyHaveAnAccount') }}</a
                   >
