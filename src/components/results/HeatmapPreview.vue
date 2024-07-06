@@ -54,9 +54,9 @@ export default {
   methods: {
     initializeHeatmap() {
       this.heatmapInstance = Heatmap(`#containerId-${this.index}`, {
-        size: 30.0, // Radius of the data point, in pixels. Default: 20
-        max: 1, // if not set, will be derived from data
-        min: 0, // if not set, will be derived from data
+        size: 30.0, // Radius of the data point, in pixels 
+        max: 1, 
+        min: 0, 
         intensity: 1.0,
         gradient: [
           {
@@ -64,16 +64,16 @@ export default {
             offset: 0,
           },
           {
-            color: [0, 0, 255, 1.0],
-            offset: 0.2,
-          },
-          {
             color: [0, 255, 0, 1.0],
-            offset: 0.45,
+            offset: 0.35,
           },
           {
             color: [255, 255, 0, 1.0],
-            offset: 0.85,
+            offset: 0.7,
+          },
+          {
+            color: [255, 0, 0, 1.0],
+            offset: 0.8,
           },
           {
             color: [255, 0, 0, 1.0],
