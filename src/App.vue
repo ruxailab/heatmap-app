@@ -1,10 +1,10 @@
 <template>
-  <RouterView />
+  <RouterView/>
 </template>
 
 <script>
-import { RouterView } from 'vue-router'
-import { useStore } from './stores'
+import {RouterView} from 'vue-router'
+import {useStore} from './stores'
 
 export default {
   name: 'App',
@@ -17,6 +17,7 @@ export default {
 
     if (electronAPI) {
       this.handleEndClicks(electronAPI, store)
+      this.handleMouseMovements(electronAPI, store)
       this.handleEndScreenshots(electronAPI, store)
       this.handleScreenshotsProgress(electronAPI, store)
     }
@@ -28,6 +29,16 @@ export default {
         store.setClicksData(clicksData)
         store.setTotalTime(time)
         store.setDimensionsPerUrl(full_dimensions)
+        console.log('clicks data', clicksData)
+      })
+    },
+
+    handleMouseMovements(electronAPI, store) {
+      electronAPI.on('end-mouse', (movementsData, time, full_dimensions) => {
+        store.setMovementsData(movementsData)
+        store.setTotalTime(time)
+        store.setDimensionsPerUrl(full_dimensions)
+        console.log('mouse movements', movementsData)
       })
     },
 

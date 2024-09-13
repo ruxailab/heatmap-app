@@ -6,7 +6,8 @@
       </v-col>
       <v-col cols="auto">
         <v-btn color="#ff9800" rounded="lg" @click="$router.push({ name: 'dashboard' })" class="mr-4">Start a new
-          test</v-btn>
+          test
+        </v-btn>
       </v-col>
     </v-row>
     <v-divider class="border-opacity-50 mb-4"></v-divider>
@@ -24,8 +25,9 @@
         <v-card rounded="xl" theme="light" class="pa-4" outlined>
           <v-card-title>Total Time Spent</v-card-title>
           <v-card-text class="text-h5">{{
-            formattedTime(totalTime)
-            }}</v-card-text>
+              formattedTime(totalTime)
+            }}
+          </v-card-text>
         </v-card>
       </v-col>
     </v-row>
@@ -54,14 +56,15 @@
             </v-card-text>
           </template>
           <template v-else>
-            <HeatmapCarousel :urlImages="urlImages" :clicksDataMap="rawClicksData" />
+            <HeatmapCarousel :urlImages="urlImages" :context="'heatmapId-clicks'" :heatmap-data="rawClicksData"/>
+            <HeatmapCarousel :urlImages="urlImages" :context="'heatmapId-mov'" :heatmap-data="rawMovementsData"/>
           </template>
         </v-card>
 
         <!-- Clicks List -->
         <v-card rounded="xl" theme="light" class="mt-5 pa-5 h-100 w-100">
           <v-card-title>Clicks History</v-card-title>
-          <ClicksHistoryList :clickData="clicksData" :height="tableHeight" />
+          <ClicksHistoryList :clickData="clicksData" :height="tableHeight"/>
         </v-card>
       </v-col>
     </v-row>
@@ -71,7 +74,7 @@
 <script>
 import ClicksHistoryList from '@/components/results/ClicksHistoryList.vue'
 import HeatmapCarousel from '@/components/results/HeatmapCarousel.vue'
-import { useStore } from '@/stores'
+import {useStore} from '@/stores'
 
 export default {
   components: {
@@ -92,6 +95,12 @@ export default {
     },
     rawClicksData() {
       return this.store.clicksData
+    },
+    rawMovementsData() {
+      return this.store.mouseData
+    },
+    mouseMovementsData() {
+      return this.mapToArray(this.store.mouseData)
     },
     clicksData() {
       return this.mapToArray(this.rawClicksData)
@@ -116,20 +125,21 @@ export default {
     },
   },
   methods: {
-    mapToArray(clickData) {
-      let clickArray = []
-      for (const [url, clicks] of clickData.entries()) {
-        for (const click of clicks) {
-          clickArray.push({
+    mapToArray(map) {
+      let array = []
+      for (const [url, data] of map.entries()) {
+        for (const d of data) {
+          array.push({
             url: url,
-            time: click.time,
-            x: click.x,
-            y: click.y,
+            time: d.time,
+            x: d.x,
+            y: d.y,
+            value: d.value ?? 1,
           })
         }
       }
-      clickArray.sort((a, b) => a.time - b.time)
-      return clickArray.map((click, index) => ({ number: index + 1, ...click }))
+      array.sort((a, b) => a.time - b.time)
+      return array.map((data, index) => ({number: index + 1, ...data}))
     },
     formattedTime(time) {
       const totalSeconds = Math.floor(time / 1000)
@@ -152,10 +162,9 @@ export default {
 </script>
 <style scoped>
 .v-card {
-  box-shadow:
-    0 4px 4px -2px rgba(0, 0, 0, 0.4),
-    0 0 2px 0 rgba(0, 0, 0, 0.3),
-    0 0 5px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 4px -2px rgba(0, 0, 0, 0.4),
+  0 0 2px 0 rgba(0, 0, 0, 0.3),
+  0 0 5px 0 rgba(0, 0, 0, 0.2);
 }
 
 .stats {
@@ -166,7 +175,6 @@ export default {
 .scroll {
   display: flex;
   flex-direction: column;
-  max-height: 90vh;
   height: 100%;
   min-height: 600px;
   max-width: 100vw;

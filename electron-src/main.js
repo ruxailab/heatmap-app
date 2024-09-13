@@ -1,15 +1,56 @@
-import { app, ipcMain, BrowserWindow, WebContentsView } from 'electron/main'
-import { screen, Menu, MenuItem, shell } from 'electron'
+import {app, ipcMain, BrowserWindow, WebContentsView} from 'electron/main'
+import {screen, Menu, MenuItem, shell} from 'electron'
 
 import * as path from 'path'
 
 import {
-  executeInWebView,
-  scrollPositionScript,
-  dimensionsScript,
+    executeInWebView,
+    scrollPositionScript,
+    dimensionsScript,
 } from './webContentsView/handlers.js'
-import { takeScreenshots } from './mainWindow/utils.js'
-import ClickTracker from './clicks/ClickTracker.js'
+import {takeScreenshots} from './mainWindow/utils.js'
+import ClickTracker from './trackers/clicks/ClickTracker.js'
+import MouseMovementTracker from './trackers/mouse/MouseTracker.js'
+import TrackerManager from "./trackers/TrackerManager.js";
+import BaseTracker from "./trackers/BaseTracker.js";
+
+// This script is the main entry point for the Electron application.
+app.whenReady().then(() => {
+    const mainWin = createWindow()
+    let webView = null
+    const trackerManager = new TrackerManager();
+    const clickTracker = new ClickTracker()
+    const mouseMovementTracker = new MouseMovementTracker()
+    trackerManager.addTracker(clickTracker)
+    trackerManager.addTracker(mouseMovementTracker)
+    let inputUrl = ''
+
+    ipcMain.on('urlToGo', (_, value) => {
+        inputUrl = validateAndFixUrl(value[0])
+        console.log('Input value received in main process:', value)
+        if (!webView) webView = createWebView(mainWin, value[1], trackerManager.getTrackerByType(BaseTracker.types.CLICK), trackerManager.getTrackerByType(BaseTracker.types.MOUSE_MOVEMENT))
+
+        // Start tracking timer on the first web load
+        webView.webContents.once('did-finish-load', () => trackerManager.startTracking())
+
+        handleUrlToGo(inputUrl, mainWin, webView)
+    })
+    ipcMain.on('backAction', () => handleBackAction(webView))
+    ipcMain.on('forwardAction', () => handleForwardAction(webView))
+    ipcMain.on('resetURL', () => handleResetUrl(inputUrl, webView))
+    ipcMain.on('endTest', () => handleEndTest(mainWin, webView, trackerManager))
+    app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) {
+            createWindow()
+        }
+    })
+})
+
+app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+        app.quit()
+    }
+})
 
 /**
  * Creates a new BrowserWindow with specific configurations.
@@ -30,21 +71,21 @@ import ClickTracker from './clicks/ClickTracker.js'
  * @returns {BrowserWindow} The newly created BrowserWindow instance.
  */
 function createWindow(options = {}) {
-  const defaultOptions = {
-    autoHideMenuBar: true,
-    width: 1200,
-    height: 800,
-    webPreferences: {
-      preload: path.join(new URL('.', import.meta.url).pathname, 'preload.js'),
-    },
-  }
+    const defaultOptions = {
+        autoHideMenuBar: true,
+        width: 1200,
+        height: 800,
+        webPreferences: {
+            preload: path.join(new URL('.', import.meta.url).pathname, 'preload.js'),
+        },
+    }
 
-  const mainWin = new BrowserWindow({ ...defaultOptions, ...options })
+    const mainWin = new BrowserWindow({...defaultOptions, ...options})
 
-  Menu.setApplicationMenu(createMenu())
-  mainWin.loadFile('dist/index.html')
+    Menu.setApplicationMenu(createMenu())
+    mainWin.loadFile('dist/index.html')
 
-  return mainWin
+    return mainWin
 }
 
 /**
@@ -59,56 +100,56 @@ function createWindow(options = {}) {
  * @returns {Menu} The newly created Menu instance.
  */
 function createMenu() {
-  const menu = new Menu()
+    const menu = new Menu()
 
-  const viewMenu = new Menu()
-  viewMenu.append(new MenuItem({ label: 'Reload', role: 'reload' }))
-  viewMenu.append(
-    new MenuItem({ label: 'Toggle Fullscreen', role: 'togglefullscreen' }),
-  )
-  viewMenu.append(new MenuItem({ label: 'Zoom In', role: 'zoomin' }))
-  viewMenu.append(new MenuItem({ label: 'Zoom Out', role: 'zoomout' }))
-  viewMenu.append(new MenuItem({ label: 'Reset Zoom', role: 'resetzoom' }))
-  viewMenu.append(
-    new MenuItem({ label: 'Toggle Developer Tools', role: 'toggledevtools' }),
-  )
+    const viewMenu = new Menu()
+    viewMenu.append(new MenuItem({label: 'Reload', role: 'reload'}))
+    viewMenu.append(
+        new MenuItem({label: 'Toggle Fullscreen', role: 'togglefullscreen'}),
+    )
+    viewMenu.append(new MenuItem({label: 'Zoom In', role: 'zoomin'}))
+    viewMenu.append(new MenuItem({label: 'Zoom Out', role: 'zoomout'}))
+    viewMenu.append(new MenuItem({label: 'Reset Zoom', role: 'resetzoom'}))
+    viewMenu.append(
+        new MenuItem({label: 'Toggle Developer Tools', role: 'toggledevtools'}),
+    )
 
-  const helpMenu = new Menu()
-  helpMenu.append(
-    new MenuItem({
-      label: 'Documentation',
-      click: () => {
-        shell.openExternal(
-          'https://github.com/vGerJ02/ruxailab-testing-app/wiki',
-        )
-      },
-    }),
-  )
-  helpMenu.append(
-    new MenuItem({
-      label: 'Check for Updates',
-      click: () => {
-        shell.openExternal(
-          'https://github.com/vGerJ02/ruxailab-testing-app/releases',
-        )
-      },
-    }),
-  )
-  helpMenu.append(
-    new MenuItem({
-      label: 'Report an Issue',
-      click: () => {
-        shell.openExternal(
-          'https://github.com/vGerJ02/ruxailab-testing-app/issues',
-        )
-      },
-    }),
-  )
+    const helpMenu = new Menu()
+    helpMenu.append(
+        new MenuItem({
+            label: 'Documentation',
+            click: () => {
+                shell.openExternal(
+                    'https://github.com/vGerJ02/ruxailab-testing-app/wiki',
+                )
+            },
+        }),
+    )
+    helpMenu.append(
+        new MenuItem({
+            label: 'Check for Updates',
+            click: () => {
+                shell.openExternal(
+                    'https://github.com/vGerJ02/ruxailab-testing-app/releases',
+                )
+            },
+        }),
+    )
+    helpMenu.append(
+        new MenuItem({
+            label: 'Report an Issue',
+            click: () => {
+                shell.openExternal(
+                    'https://github.com/vGerJ02/ruxailab-testing-app/issues',
+                )
+            },
+        }),
+    )
 
-  menu.append(new MenuItem({ label: 'View', submenu: viewMenu }))
-  menu.append(new MenuItem({ label: 'Help', submenu: helpMenu }))
+    menu.append(new MenuItem({label: 'View', submenu: viewMenu}))
+    menu.append(new MenuItem({label: 'Help', submenu: helpMenu}))
 
-  return menu
+    return menu
 }
 
 /**
@@ -117,67 +158,81 @@ function createMenu() {
  * @param {BrowserWindow} mainWin - The main window in which the WebView is created.
  * @param {number} offsetY - The offset in the Y direction for the WebView.
  * @param {ClickTracker} clickTracker - An object that tracks clicks in the WebView.
+ * @param {MouseMovementTracker} mouseMovementTracker - An object that tracks mouse movements in the WebView.
  *
  * @returns {WebContentsView} webView - The created WebView.
  */
-function createWebView(mainWin, offsetY, clickTracker) {
-  const webView = new WebContentsView({
-    webPreferences: {
-      preload: path.join(
-        new URL('.', import.meta.url).pathname,
-        'preloadView.js',
-      ),
-    },
-  })
+function createWebView(mainWin, offsetY, clickTracker, mouseMovementTracker) {
+    const webView = new WebContentsView({
+        webPreferences: {
+            preload: path.join(
+                new URL('.', import.meta.url).pathname,
+                'preloadView.js',
+            ),
+        },
+    })
 
-  webView.webContents.on('did-finish-load', async () => {
-    console.log('[LOG] url finished loading')
-    resizeWebView(undefined, offsetY, mainWin, webView)
-    mainWin.webContents.send('webview-load-finished')
-  })
 
-  webView.webContents.on('input-event', async (_event, input) => {
-    if (input.type === 'mouseDown') {
-      const screenPoint = screen.getCursorScreenPoint()
-      const windowPoint = mainWin.getContentBounds()
+    webView.webContents.on('did-finish-load', async () => {
+        console.log('[LOG] url finished loading')
+        resizeWebView(undefined, offsetY, mainWin, webView)
+        const dimensions = await executeInWebView(webView, dimensionsScript)
+        if (!dimensions) return
 
-      const scrollPosition = await executeInWebView(
-        webView,
-        scrollPositionScript,
-      )
-      if (!scrollPosition) return
+        const url = webView.webContents.getURL()
+        clickTracker.setDimensions(url, dimensions.width, dimensions.height)
+        console.log('[LOG] dimensions set for url:', url, clickTracker.getDimensions())
+        mainWin.webContents.send('webview-load-finished')
+    })
 
-      const x = screenPoint.x - windowPoint.x + scrollPosition.x
-      const y = screenPoint.y - windowPoint.y - offsetY + scrollPosition.y
+    webView.webContents.on('input-event', async (_event, input) => {
+        if (input.type === 'mouseDown' || input.type === 'mouseMove') {
 
-      const url = webView.webContents.getURL()
-      clickTracker.trackClick(x, y, url)
-      console.log('mouse down at:', x, y, url)
+            const screenPoint = screen.getCursorScreenPoint()
+            const windowPoint = mainWin.getContentBounds()
 
-      const dimensions = await executeInWebView(webView, dimensionsScript)
-      if (!dimensions) return
+            const scrollPosition = await executeInWebView(
+                webView,
+                scrollPositionScript,
+            )
+            if (!scrollPosition) return
 
-      clickTracker.setDimensions(url, dimensions.width, dimensions.height)
-    }
-  })
+            const x = screenPoint.x - windowPoint.x + scrollPosition.x
+            const y = screenPoint.y - windowPoint.y - offsetY + scrollPosition.y
 
-  webView.webContents.on(
-    'did-fail-load',
-    (_event, _errorCode, errorDescription) => {
-      mainWin.webContents.send('webview-load-failed', errorDescription)
-      endWebView(mainWin, webView)
-    },
-  )
+            const url = webView.webContents.getURL()
+            if (input.type === 'mouseDown') {
+                clickTracker.trackClick(x, y, url)
+                console.log('mouse down at:', x, y, url)
 
-  webView.webContents.on('did-navigate', (_, url) => {
-    console.log('Navigating to: ', url)
-    mainWin.webContents.send('url-updated', url !== 'about:blank' ? url : '')
-  })
+                const dimensions = await executeInWebView(webView, dimensionsScript)
+                if (!dimensions) return
 
-  mainWin.on('resize', () => {
-    resizeWebView(undefined, offsetY, mainWin, webView)
-  })
-  return webView
+                clickTracker.setDimensions(url, dimensions.width, dimensions.height)
+            } else if (input.type === 'mouseMove') {
+                mouseMovementTracker.trackMovement(x, y, url)
+                // console.log('mouse move at:', x, y, url)
+            }
+        }
+    })
+
+    webView.webContents.on(
+        'did-fail-load',
+        (_event, _errorCode, errorDescription) => {
+            mainWin.webContents.send('webview-load-failed', errorDescription)
+            endWebView(mainWin, webView)
+        },
+    )
+
+    webView.webContents.on('did-navigate', (_, url) => {
+        console.log('Navigating to: ', url)
+        mainWin.webContents.send('url-updated', url !== 'about:blank' ? url : '')
+    })
+
+    mainWin.on('resize', () => {
+        resizeWebView(undefined, offsetY, mainWin, webView)
+    })
+    return webView
 }
 
 /**
@@ -192,11 +247,11 @@ function createWebView(mainWin, offsetY, clickTracker) {
  * @param {WebContentsView} webView - The WebView instance to navigate in.
  */
 function handleUrlToGo(inputUrl, mainWin, webView) {
-  if (mainWin && inputUrl && webView) {
-    mainWin.contentView.addChildView(webView)
-    webView.setVisible(true)
-    webView.webContents.loadURL(inputUrl)
-  }
+    if (mainWin && inputUrl && webView) {
+        mainWin.contentView.addChildView(webView)
+        webView.setVisible(true)
+        webView.webContents.loadURL(inputUrl)
+    }
 }
 
 /**
@@ -208,7 +263,7 @@ function handleUrlToGo(inputUrl, mainWin, webView) {
  * @param {WebContentsView} webView - The WebContentsView instance to handle the back action for.
  */
 function handleBackAction(webView) {
-  if (webView.webContents.canGoBack()) webView.webContents.goBack()
+    if (webView.webContents.canGoBack()) webView.webContents.goBack()
 }
 
 /**
@@ -220,7 +275,7 @@ function handleBackAction(webView) {
  * @param {WebContentsView} webView - The WebContentsView instance to handle the forward action for.
  */
 function handleForwardAction(webView) {
-  if (webView.webContents.canGoForward()) webView.webContents.goForward()
+    if (webView.webContents.canGoForward()) webView.webContents.goForward()
 }
 
 /**
@@ -233,7 +288,7 @@ function handleForwardAction(webView) {
  * @param {WebContentsView} webView - The WebContentsView instance to reset the URL for.
  */
 function handleResetUrl(inputUrl, webView) {
-  if (inputUrl) webView.webContents.loadURL(inputUrl)
+    if (inputUrl) webView.webContents.loadURL(inputUrl)
 }
 
 /**
@@ -245,34 +300,37 @@ function handleResetUrl(inputUrl, webView) {
  *
  * @param {BrowserWindow} mainWin - The window where webView is attached to
  * @param {WebContentsView} webView - The WebContentsView whose test has ended.
- * @param {ClickTracker} clickTracker - The ClickTracker instance used to track clicks.
+ * @param {TrackerManager} trackerManager - The TrackerManager instance to get the results from.
  */
-function handleEndTest(mainWin, webView, clickTracker) {
-  if (webView.webContents) {
-    clickTracker.endTracking()
-    const time = clickTracker.totalDuration()
-    const clicks = clickTracker.getClicks()
-    const dimensions = clickTracker.getDimensions()
+function handleEndTest(mainWin, webView, trackerManager) {
+    if (webView.webContents) {
+        trackerManager.endTracking()
+        const results = trackerManager.getResults()
 
-    mainWin.webContents.send('end-clicks', clicks, time, dimensions)
-    console.log(clicks)
-    clickTracker.reset()
-    endWebView(mainWin, webView)
+        // Extract specific data from results
+        const clickResults = results.find(result => result.type === BaseTracker.types.CLICK) || {clicks: [], time: 0};
+        const mouseMovementResults = results.find(result => result.type === BaseTracker.types.MOUSE_MOVEMENT) || {
+            movements: [],
+            time: 0
+        };
+        const dimensions = clickResults.dimensions || mouseMovementResults.dimensions || new Map()
 
-    takeScreenshots(dimensions, (progress, failedUrls) =>
-      mainWin.webContents.send('screenshots-progress', progress, failedUrls),
-    )
-      .then((imges) => {
-        console.log('Resolved')
-        mainWin.webContents.send('end-screenshots', imges)
-      })
-      .catch((e) => {
-        console.error(e)
-      })
-      .finally(() => {
-        console.log('finally')
-      })
-  }
+        mainWin.webContents.send('end-clicks', clickResults.clicks, clickResults.time, dimensions)
+        mainWin.webContents.send('end-mouse', mouseMovementResults.movements, mouseMovementResults.time, dimensions)
+
+        trackerManager.reset()
+        endWebView(mainWin, webView)
+
+        takeScreenshots(dimensions, (progress, failedUrls) =>
+            mainWin.webContents.send('screenshots-progress', progress, failedUrls),
+        )
+            .then((images) => {
+                mainWin.webContents.send('end-screenshots', images)
+            })
+            .catch((e) => {
+                console.error(e)
+            })
+    }
 }
 
 /**
@@ -285,46 +343,11 @@ function handleEndTest(mainWin, webView, clickTracker) {
  * @param {WebContentsView} webView - The WebContentsView instance to end the session for.
  */
 function endWebView(mainWin, webView) {
-  webView.webContents.loadURL('about:blank')
-  webView.setVisible(false)
-  mainWin.contentView.removeChildView(webView)
+    webView.webContents.loadURL('about:blank')
+    webView.setVisible(false)
+    mainWin.contentView.removeChildView(webView)
 }
 
-app.whenReady().then(() => {
-  const mainWin = createWindow()
-  let webView = null
-  let clickTracker = new ClickTracker()
-  let inputUrl = ''
-
-  ipcMain.on('urlToGo', (_, value) => {
-    inputUrl = validateAndFixUrl(value[0])
-    console.log('Input value received in main process:', value)
-    if (!webView) webView = createWebView(mainWin, value[1], clickTracker)
-
-    // Start tracking timer on the first web load
-    webView.webContents.once('did-finish-load', () =>
-      clickTracker.startTracking(),
-    )
-
-    handleUrlToGo(inputUrl, mainWin, webView)
-  })
-  ipcMain.on('backAction', () => handleBackAction(webView))
-  ipcMain.on('forwardAction', () => handleForwardAction(webView))
-  ipcMain.on('resetURL', () => handleResetUrl(inputUrl, webView))
-  ipcMain.on('endTest', () => handleEndTest(mainWin, webView, clickTracker))
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
-    }
-  })
-})
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
 
 /**
  * Validates a given URL.
@@ -336,8 +359,8 @@ app.on('window-all-closed', () => {
  * @returns {string} The validated and fixed URL.
  */
 function validateAndFixUrl(inputUrl) {
-  const urlRegex = /^(https?):\/\//
-  return urlRegex.test(inputUrl) ? inputUrl : 'https://' + inputUrl
+    const urlRegex = /^(https?):\/\//
+    return urlRegex.test(inputUrl) ? inputUrl : 'https://' + inputUrl
 }
 
 /**
@@ -353,21 +376,21 @@ function validateAndFixUrl(inputUrl) {
  * @param {WebContentsView} webView - The WebContentsView instance to resize.
  */
 function resizeWebView(offsetX = 0, offsetY = 0, mainWindow, webView) {
-  if (!mainWindow || !webView) {
-    console.log('mainWindow or webView not ready')
-    return
-  }
+    if (!mainWindow || !webView) {
+        console.log('mainWindow or webView not ready')
+        return
+    }
 
-  const { width, height } = mainWindow.getContentBounds()
-  const { x: oldX, y: oldY } = webView.getBounds()
+    const {width, height} = mainWindow.getContentBounds()
+    const {x: oldX, y: oldY} = webView.getBounds()
 
-  offsetX = offsetX === undefined ? oldX : offsetX
-  offsetY = offsetY === undefined ? oldY : offsetY
+    offsetX = offsetX === undefined ? oldX : offsetX
+    offsetY = offsetY === undefined ? oldY : offsetY
 
-  webView.setBounds({
-    x: offsetX,
-    y: offsetY,
-    width: width - offsetX,
-    height: height - offsetY,
-  })
+    webView.setBounds({
+        x: offsetX,
+        y: offsetY,
+        width: width - offsetX,
+        height: height - offsetY,
+    })
 }

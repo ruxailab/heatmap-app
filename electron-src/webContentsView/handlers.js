@@ -1,11 +1,11 @@
 export async function executeInWebView(webView, script) {
-  try {
-    return await webView.webContents.executeJavaScript(script)
-  } catch (err) {
-    console.log(err)
-    webView.webContents.openDevTools({ mode: 'detach' })
-    return null
-  }
+    try {
+        return await webView.webContents.executeJavaScript(script)
+    } catch (err) {
+        console.log(err)
+        webView.webContents.openDevTools({mode: 'detach'})
+        return null
+    }
 }
 
 export const scrollPositionScript = `

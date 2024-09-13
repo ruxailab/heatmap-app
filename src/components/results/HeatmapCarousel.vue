@@ -7,30 +7,31 @@
       {{ currentHeatmapUrl }}
     </p>
     <VBtn
-      rounded="xl"
-      @click="next"
-      :disabled="activeIndex === heatmapData.size - 1"
+        rounded="xl"
+        @click="next"
+        :disabled="activeIndex === heatmapData.size - 1"
     >
       <v-icon>mdi-arrow-right</v-icon>
     </VBtn>
   </div>
   <div class="carousel-container">
     <div
-      v-for="(heatmap, index) in heatmapData"
-      :key="heatmap[0]"
-      class="heatmap-container"
-      :style="{
-        // without this, the scroll overflow doesnt work idk why -_-
+        v-for="(heatmap, index) in heatmapData"
+        :key="heatmap[0]"
+        class="heatmap-container"
+        :style="{
+        // without this, the scroll overflow doesn't work idk why -_-
         transform: `translateX(0%)`,
       }"
     >
       <HeatmapPreview
-        class="heatmap-preview"
-        v-if="activeIndex === index"
-        :heatmapData="heatmap[1]"
-        :index="index"
-        :full-dimensions="dimensionsPer.get(heatmap[0]) ?? null"
-        :image="urlImages.get(heatmap[0]) ?? null"
+          class="heatmap-preview"
+          v-if="activeIndex === index"
+          :heatmapData="heatmap[1]"
+          :context="`${context}-${index}`"
+          :index="index"
+          :full-dimensions="dimensionsPer.get(heatmap[0]) ?? null"
+          :image="urlImages.get(heatmap[0]) ?? null"
       />
     </div>
   </div>
@@ -38,14 +39,14 @@
 
 <script>
 import HeatmapPreview from './HeatmapPreview.vue'
-import { useStore } from '@/stores'
+import {useStore} from '@/stores'
 
 export default {
   components: {
     HeatmapPreview,
   },
   props: {
-    clicksDataMap: {
+    heatmapData: {
       type: Map,
       required: true,
     },
@@ -53,6 +54,10 @@ export default {
       type: Map,
       required: true,
     },
+    context: {
+      type: String,
+      default: 'heatmapId',
+    }
   },
   data() {
     return {
@@ -60,16 +65,6 @@ export default {
     }
   },
   computed: {
-    heatmapData() {
-      let result = new Map()
-      for (let [key, value] of this.clicksDataMap.entries()) {
-        result.set(key, this.arrayToHeatMapArray(value))
-      }
-      return result
-    },
-    shouldShowArrows() {
-      return this.heatmapData.size > 1
-    },
     dimensionsPer() {
       const store = useStore()
       return store.dimensionsPerUrl
@@ -80,17 +75,6 @@ export default {
     },
   },
   methods: {
-    arrayToHeatMapArray(array) {
-      let heatMapArray = []
-      for (const click of array) {
-        heatMapArray.push({
-          x: click.x,
-          y: click.y,
-          value: 1,
-        })
-      }
-      return heatMapArray
-    },
     next() {
       if (this.activeIndex < this.heatmapData.size - 1) {
         this.activeIndex++

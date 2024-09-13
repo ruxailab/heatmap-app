@@ -12,7 +12,8 @@ import VueRouter from 'unplugin-vue-router/vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: path.resolve(__dirname, './dist'),
+  //base: path.resolve(__dirname, './dist'),
+  base: './',
   plugins: [
     VueRouter(),
     Vue({ template: { transformAssetUrls } }),

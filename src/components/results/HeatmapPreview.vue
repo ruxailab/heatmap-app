@@ -1,11 +1,7 @@
 <template>
-  <div
-    :ref="`container-${index}`"
-    :id="`containerId-${index}`"
-    :style="{
-      aspectRatio: `${aspectRatio}`,
-    }"
-  ></div>
+  <div :ref="`${context}`" :id="context" :style="{
+    aspectRatio: `${aspectRatio}`,
+  }"></div>
 </template>
 <script>
 import Heatmap from 'visual-heatmap'
@@ -19,12 +15,16 @@ export default {
     index: {
       required: true,
     },
+    context: {
+      type: String,
+      required: true,
+    },
     fullDimensions: {
       type: Object,
       required: true,
     },
     image: {
-      requred: true,
+      required: true,
     },
   },
   data() {
@@ -36,6 +36,36 @@ export default {
     aspectRatio() {
       return this.fullDimensions.width / this.fullDimensions.height
     },
+    heatmapConfig() {
+      if (this.context !== 'move') {
+        return {
+          size: 30.0, // Increased radius to capture broader mouse movements
+          max: 1,
+          min: 0,
+          intensity: 0.5,
+          gradient: [
+            {color: [0, 0, 255, 0.8], offset: 0},   // Cooler color for lower intensity
+            {color: [0, 255, 0, 0.8], offset: 0.5},  // Midpoint color
+            {color: [255, 255, 0, 0.8], offset: 0.75}, // Warmer color as intensity increases
+            {color: [255, 0, 0, 0.8], offset: 1.0}   // Warmest color for highest intensity
+          ],
+        }
+      } else {
+        return {
+          size: 30.0, // Radius of the data point, in pixels
+          max: 1,
+          min: 0,
+          intensity: 1.0,
+          gradient: [
+            {color: [0, 0, 255, 1.0], offset: 0,},
+            {color: [0, 255, 0, 1.0], offset: 0.35,},
+            {color: [255, 255, 0, 1.0], offset: 0.7,},
+            {color: [255, 0, 0, 1.0], offset: 0.8,},
+            {color: [255, 0, 0, 1.0], offset: 1.0,},
+          ],
+        }
+      }
+    }
   },
   mounted() {
     this.$nextTick(() => {
@@ -53,34 +83,7 @@ export default {
   },
   methods: {
     initializeHeatmap() {
-      this.heatmapInstance = Heatmap(`#containerId-${this.index}`, {
-        size: 30.0, // Radius of the data point, in pixels 
-        max: 1, 
-        min: 0, 
-        intensity: 1.0,
-        gradient: [
-          {
-            color: [0, 0, 255, 1.0],
-            offset: 0,
-          },
-          {
-            color: [0, 255, 0, 1.0],
-            offset: 0.35,
-          },
-          {
-            color: [255, 255, 0, 1.0],
-            offset: 0.7,
-          },
-          {
-            color: [255, 0, 0, 1.0],
-            offset: 0.8,
-          },
-          {
-            color: [255, 0, 0, 1.0],
-            offset: 1.0,
-          },
-        ],
-      })
+      this.heatmapInstance = Heatmap(`#${this.context}`, this.heatmapConfig)
 
       this.updateHeatmap()
     },
@@ -92,6 +95,7 @@ export default {
 
       this.heatmapInstance.clear()
       this.heatmapInstance.resize()
+      this.heatmapInstance.setMax(this.getMaxValue(transformedData) === -Infinity ? 1 : this.getMaxValue(transformedData))
       this.heatmapInstance.renderData(transformedData)
 
       const dimensions = this.containerDimensions()
@@ -102,7 +106,7 @@ export default {
       })
     },
     containerDimensions() {
-      const container = this.$refs[`container-${this.index}`]
+      const container = this.$refs[`${this.context}`]
       if (!container) return
 
       const {
@@ -110,18 +114,18 @@ export default {
         offsetHeight: newContainerHeight,
       } = container
 
-      return { newContainerWidth, newContainerHeight }
+      return {newContainerWidth, newContainerHeight}
     },
     transformCoordinates(data) {
       if (!data) return data
 
-      const container = this.$refs[`container-${this.index}`]
+      const container = this.$refs[`${this.context}`]
       if (!container) return
 
-      const { newContainerWidth, newContainerHeight } =
-        this.containerDimensions()
-      const { width: dimensionsWidth, height: dimensionsHeight } =
-        this.fullDimensions
+      const {newContainerWidth, newContainerHeight} =
+          this.containerDimensions()
+      const {width: dimensionsWidth, height: dimensionsHeight} =
+          this.fullDimensions
 
       if (dimensionsWidth === 0 || dimensionsHeight === 0) return
 
@@ -132,8 +136,14 @@ export default {
         ...item,
         x: item.x * scaleX,
         y: item.y * scaleY,
+        value: item.value ?? 1,
       }))
     },
+    getMaxValue(data) {
+      return data.reduce((maxValue, item) => {
+        return item.value > maxValue ? item.value : maxValue;
+      }, -Infinity);
+    }
   },
 }
 </script>
