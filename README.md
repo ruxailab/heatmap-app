@@ -27,12 +27,12 @@ To install tests-app, follow these steps:
 
 1. Clone the repository
 ```sh
-git clone https://github.com/vGerJ02/ruxailab-testing-app
+git clone https://github.com/yugalkaushik/heatmap-app.git
 ```
 
 2. Navigate to the project directory
 ```sh
-cd ruxailab-testing-app
+cd heatmap-app
 ```
 
 3. Install the dependencies
