@@ -27,7 +27,7 @@ To install tests-app, follow these steps:
 
 1. Clone the repository
 ```sh
-git clone https://github.com/yugalkaushik/heatmap-app.git
+git clone https://github.com/ruxailab/heatmap-app.git
 ```
 
 2. Navigate to the project directory
