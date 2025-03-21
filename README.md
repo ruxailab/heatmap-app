@@ -1,4 +1,4 @@
-#  🚀 RUXAILAB Testing App 
+#  🚀 RUXAILAB HEATMAP APPLICATION
 
 This project is an application built using ElectronJS and Vue.js. The purpose of this application is to register user events during UI tests and generate analytics, such as heatmaps, to analyze user behavior.
 
